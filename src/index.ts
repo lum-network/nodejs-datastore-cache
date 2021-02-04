@@ -1,10 +1,5 @@
-const foobar = (input: string): string => {
-    if (input === 'foo') {
-        return 'bar';
-    } else if (input === 'bar') {
-        return 'foo';
-    }
-    return 'foobar';
-};
+import { DataClient } from './DataClient';
+import { DataModel } from './DataModel';
+import { NoCacheClient, RedisCacheClient } from './cache';
 
-export { foobar };
+export { DataClient, DataModel, NoCacheClient, RedisCacheClient };

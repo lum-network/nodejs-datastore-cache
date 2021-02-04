@@ -16,7 +16,13 @@
         "lint": "eslint '**/*.{ts,js}'",
         "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json,md,html,yml}'"
     },
-    "dependencies": {},
+    "dependencies": {
+        "@google-cloud/datastore": "^6.3.1",
+        "@types/redis": "^2.8.28",
+        "class-transformer": "^0.3.2",
+        "node-redis": "^0.1.7",
+        "redis": "^3.0.2"
+    },
     "optionalDependencies": {},
     "devDependencies": {
         "@babel/cli": "^7.8.3",
