@@ -1,14 +1,44 @@
 import * as redis from 'redis';
 
-import { ICacheClient } from '../interfaces/ICacheClient';
-import { ICacheString, ICacheStringArray, ICacheStringMap } from '../interfaces/ICacheTypes';
+import { CacheClientEvent, ICacheClient, ICacheString, ICacheStringArray, ICacheStringMap } from '../interfaces';
 
 export class RedisCacheClient implements ICacheClient {
     client: redis.RedisClient;
+    eventsCallback: (event: CacheClientEvent) => void;
 
-    constructor(options?: redis.ClientOpts) {
+    constructor(options?: redis.ClientOpts, eventsCallback?: (event: CacheClientEvent) => void) {
+        if (eventsCallback) {
+            this.eventsCallback = eventsCallback;
+        } else {
+            this.eventsCallback = () => {};
+        }
+
         this.client = new redis.RedisClient(options || {});
+
+        this.client.on('ready', () => {
+            this.eventsCallback(CacheClientEvent.Ready);
+        });
+        this.client.on('connect', () => {
+            this.eventsCallback(CacheClientEvent.Connected);
+        });
+        this.client.on('end', () => {
+            this.eventsCallback(CacheClientEvent.Closed);
+        });
+        this.client.on('reconnecting', () => {
+            this.eventsCallback(CacheClientEvent.Reconnecting);
+        });
     }
+
+    close = async () => {
+        return new Promise<void>((resolve) => {
+            this.client.end(true);
+            resolve();
+        });
+    };
+
+    events = async (callback: (event: CacheClientEvent) => void) => {
+        this.eventsCallback = callback;
+    };
 
     get = async (key: string) => {
         return new Promise<ICacheString>((resolve, reject) => {
@@ -24,6 +54,10 @@ export class RedisCacheClient implements ICacheClient {
 
     mget = async (keys: Array<string>) => {
         return new Promise<ICacheStringArray>((resolve, reject) => {
+            if (keys.length === 0) {
+                resolve([]);
+                return;
+            }
             this.client.mget(keys, (err: Error | null, reply: ICacheStringArray) => {
                 if (err !== null) {
                     reject(err);
@@ -52,6 +86,10 @@ export class RedisCacheClient implements ICacheClient {
             for (const k in kvs) {
                 args.push(k);
                 args.push(kvs[k]);
+            }
+            if (args.length === 0) {
+                resolve();
+                return;
             }
             this.client.mset(...args, (err: Error | null) => {
                 if (err !== null) {
@@ -84,13 +122,6 @@ export class RedisCacheClient implements ICacheClient {
                     resolve();
                 }
             });
-        });
-    };
-
-    close = async () => {
-        return new Promise<void>((resolve) => {
-            this.client.end(true);
-            resolve();
         });
     };
 }

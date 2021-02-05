@@ -11,7 +11,7 @@ export class DataClient {
         this.cacheClient = cacheClient || new NoCacheClient();
     }
 
-    close = () => {
-        this.cacheClient.close();
+    close = async () => {
+        await this.cacheClient.close();
     };
 }

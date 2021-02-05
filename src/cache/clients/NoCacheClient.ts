@@ -1,6 +1,14 @@
-import { ICacheClient } from '../interfaces/ICacheClient';
+import { ICacheClient } from '../interfaces';
 
 export class NoCacheClient implements ICacheClient {
+    close = async () => {
+        return;
+    };
+
+    events = async () => {
+        return;
+    };
+
     get = async () => {
         return null;
     };
@@ -22,10 +30,6 @@ export class NoCacheClient implements ICacheClient {
     };
 
     mdel = async () => {
-        return;
-    };
-
-    close = async () => {
         return;
     };
 }
