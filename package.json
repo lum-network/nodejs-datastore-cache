@@ -8,7 +8,7 @@
         "lib/*"
     ],
     "scripts": {
-        "test": "cross-env NODE_ENV=test jest",
+        "test": "unset GOOGLE_APPLICATION_CREDENTIALS && export DATASTORE_EMULATOR_HOST='localhost:8081' && export DATASTORE_PROJECT_ID='dev' && cross-env NODE_ENV=test jest",
         "build": "yarn clean && yarn build:types && yarn build:js",
         "build:types": "tsc --emitDeclarationOnly",
         "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
@@ -21,7 +21,8 @@
         "@types/redis": "^2.8.28",
         "class-transformer": "^0.3.2",
         "node-redis": "^0.1.7",
-        "redis": "^3.0.2"
+        "redis": "^3.0.2",
+        "reflect-metadata": "^0.1.13"
     },
     "optionalDependencies": {},
     "devDependencies": {

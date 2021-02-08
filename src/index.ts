@@ -1,5 +1,7 @@
+import 'reflect-metadata';
+
 import { DataClient } from './DataClient';
-import { DataModel } from './DataModel';
+import { Entity, Key, GeoPt } from './models';
 import { NoCacheClient, RedisCacheClient } from './cache';
 
-export { DataClient, DataModel, NoCacheClient, RedisCacheClient };
+export { DataClient, Entity, GeoPt, Key, NoCacheClient, RedisCacheClient };
