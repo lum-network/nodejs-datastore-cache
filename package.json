@@ -12,6 +12,7 @@
         "build": "yarn clean && yarn build:types && yarn build:js",
         "build:types": "tsc --emitDeclarationOnly",
         "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
+        "build:docs": "rimraf docs/lib && typedoc --excludeExternals --excludeNotDocumented --readme none --out docs/lib --hideBreadcrumbs --disableSources",
         "clean": "rimraf lib",
         "lint": "eslint '**/*.{ts,js}'",
         "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json,md,html,yml}'"
@@ -40,6 +41,8 @@
         "prettier": "^2.2.1",
         "rimraf": "^3.0.2",
         "ts-jest": "^26.5.0",
+        "typedoc": "^0.20.23",
+        "typedoc-plugin-markdown": "^3.4.5",
         "typescript": "^4.1.3"
     }
 }
