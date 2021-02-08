@@ -65,10 +65,6 @@ describe('DataModels', () => {
             const plain3 = k3.toPlain();
             expect(Key.fromPlain(plain3).toDatastore()).toStrictEqual(k3.toDatastore());
         });
-
-        it('should encode key consistently', () => {
-            // TODO: should encore keys are encoded as expected (hardcode key.encode output compare)
-        });
     });
 
     describe('Entity features', () => {
