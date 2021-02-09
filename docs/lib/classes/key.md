@@ -32,6 +32,7 @@ const k3 = Key.incompleteKey(
 - [toPlain](key.md#toplain)
 - [decode](key.md#decode)
 - [fromDatastore](key.md#fromdatastore)
+- [fromPlain](key.md#fromplain)
 - [idKey](key.md#idkey)
 - [incompleteKey](key.md#incompletekey)
 - [nameKey](key.md#namekey)
@@ -100,7 +101,7 @@ ___
 
 ### decode
 
-▸ `Static`**decode**(`store`: *Datastore*, `encodedKey`: *string*): [*Key*](key.md)
+▸ `Static`**decode**(`encodedKey`: *string*): [*Key*](key.md)
 
 Create a new Key instance based on an encoded key
 This feature is cross-compatible with other datastore sdk languages such as Python only if you use the same
@@ -110,7 +111,6 @@ datastore and key configuration.
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`store` | *Datastore* | A datastore instance   |
 `encodedKey` | *string* | The previously encoded key    |
 
 **Returns:** [*Key*](key.md)
@@ -128,6 +128,22 @@ Create a new Key instance based on the provided datastore key
 Name | Type | Description |
 ------ | ------ | ------ |
 `key` | *Key* | key from the datastore module    |
+
+**Returns:** [*Key*](key.md)
+
+___
+
+### fromPlain
+
+▸ `Static`**fromPlain**(`plain`: *string* \| { [key: string]: *any*;  }): [*Key*](key.md)
+
+Create a Key instance from a plain javascript object or an encoded string key
+
+#### Parameters:
+
+Name | Type | Description |
+------ | ------ | ------ |
+`plain` | *string* \| { [key: string]: *any*;  } | a plain object or a string encoded key    |
 
 **Returns:** [*Key*](key.md)
 

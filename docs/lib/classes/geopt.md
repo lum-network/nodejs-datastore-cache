@@ -43,16 +43,10 @@ Name | Type | Description |
 
 ### toDatastore
 
-▸ **toDatastore**(`store`: *Datastore*): *unknown*
+▸ **toDatastore**(): *unknown*
 
 Converts the current GeoPt instance into a datastore geopoint instance usable for direct datastore calls
 such as save.
-
-#### Parameters:
-
-Name | Type | Description |
------- | ------ | ------ |
-`store` | *Datastore* | A datastore instance   |
 
 **Returns:** *unknown*
 
