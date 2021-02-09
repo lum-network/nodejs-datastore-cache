@@ -1,4 +1,5 @@
 import * as datastore from '@google-cloud/datastore';
+
 import { Type, Expose, ClassTransformOptions, classToPlain, plainToClass } from 'class-transformer';
 
 const cto: ClassTransformOptions = { strategy: 'excludeAll' };
@@ -127,7 +128,12 @@ export class Key {
         return Key.fromDatastore(store.keyFromLegacyUrlsafe(encodedKey));
     };
 
-    static fromPlain = (plain: { [key: string]: any }): Key => {
+    /**
+     * Create a Key instance from a plain javascript object
+     *
+     * @param plain a plain object
+     */
+    static fromPlain = (plain: { [key: string]: any } | string): Key => {
         return plainToClass(Key, plain, cto);
     };
 
