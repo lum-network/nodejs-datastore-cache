@@ -69,6 +69,16 @@ describe('Cache Layer', () => {
             await expect(clt.mget(['foo', 'bar'])).resolves.toEqual(['bar', null]);
             await expect(clt.mget(['foobar', 'foo', 'bar'])).resolves.toEqual([null, 'bar', null]);
         });
+
+        it('can set keys to expire', async () => {
+            await expect(clt.set('expire-foo-bar', 'oh no!', 2)).resolves.toEqual(undefined);
+            await expect(clt.get('expire-foo-bar')).resolves.toEqual('oh no!');
+            await (() =>
+                new Promise((resolve) => {
+                    setTimeout(resolve, 2000);
+                }))();
+            await expect(clt.get('expire-foo-bar')).resolves.toEqual(null);
+        });
     });
 
     describe('RedisCacheClient error handling', () => {
