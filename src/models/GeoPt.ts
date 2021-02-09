@@ -1,4 +1,4 @@
-import * as datastore from '@google-cloud/datastore';
+import { entity as datastore_entity } from '@google-cloud/datastore/build/src/entity';
 import { Expose } from 'class-transformer';
 
 /**
@@ -18,6 +18,7 @@ export class GeoPt {
 
     /**
      * Create a new GeoPt instance from latitude and longitude
+     *
      * @param latitude Geo point latitude
      * @param longitude Geo point longitude
      */
@@ -29,15 +30,16 @@ export class GeoPt {
     /**
      * Converts the current GeoPt instance into a datastore geopoint instance usable for direct datastore calls
      * such as save.
-     * @param store A datastore instance
+     *
      * @returns A datastore geopoint instance
      */
-    toDatastore = (store: datastore.Datastore): unknown => {
-        return store.geoPoint({ latitude: this.latitude, longitude: this.longitude });
+    toDatastore = (): unknown => {
+        return new datastore_entity.GeoPoint({ latitude: this.latitude, longitude: this.longitude });
     };
 
     /**
      * Converts the current GeoPt instance into a plain object with a latitude and a longitude.
+     *
      * @returns Plain object
      */
     toPlain = (): { latitude: number; longitude: number } => {

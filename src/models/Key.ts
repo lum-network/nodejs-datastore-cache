@@ -1,8 +1,26 @@
 import * as datastore from '@google-cloud/datastore';
+import { entity } from '@google-cloud/datastore/build/src/entity';
 
-import { Type, Expose, ClassTransformOptions, classToPlain, plainToClass } from 'class-transformer';
+import { Type, Expose, ClassTransformOptions, classToPlain, plainToClass, ExposeOptions, Transform } from 'class-transformer';
+import { Persist, PersistStruct } from './decorators';
 
 const cto: ClassTransformOptions = { strategy: 'excludeAll' };
+
+const urlSafeKeyHelper = new entity.URLSafeKey();
+
+/**
+ * Decorator used to persist a datastore key
+ * Using another decorator to persist key will result in unpredictable behaviour
+ *
+ * @param options
+ */
+export const PersistKey = (options: ExposeOptions = {}): PropertyDecorator => {
+    return (object: any, propertyName?: string | Symbol): void => {
+        Type(() => Key)(object, propertyName as string);
+        Expose(options)(object, propertyName as string);
+        Transform(({ value }) => value && Key.fromPlain(value), { toClassOnly: true })(object, propertyName as string);
+    };
+};
 
 /**
  * Wrapper class to build datastore Keys
@@ -21,24 +39,22 @@ const cto: ClassTransformOptions = { strategy: 'excludeAll' };
  * ```
  */
 export class Key {
-    @Expose()
+    @Persist()
     kind: string;
 
-    @Expose()
-    @Type(() => Number)
+    @PersistStruct(() => Number)
     id?: number;
 
-    @Expose()
+    @Persist()
     name?: string;
 
-    @Expose()
+    @Persist()
     namespace?: string;
 
-    @Expose()
-    @Type(() => Key)
+    @PersistStruct(() => Key)
     parent?: Key;
 
-    @Expose({ name: 'path' })
+    @Persist({ name: 'path' })
     path = (): Array<string | number> => {
         let path: Array<string | number> = [];
         if (this.parent) {
@@ -121,19 +137,21 @@ export class Key {
      * This feature is cross-compatible with other datastore sdk languages such as Python only if you use the same
      * datastore and key configuration.
      *
-     * @param store A datastore instance
      * @param encodedKey The previously encoded key
      */
-    static decode = (store: datastore.Datastore, encodedKey: string): Key => {
-        return Key.fromDatastore(store.keyFromLegacyUrlsafe(encodedKey));
+    static decode = (encodedKey: string): Key => {
+        return Key.fromDatastore(urlSafeKeyHelper.legacyDecode(encodedKey));
     };
 
     /**
-     * Create a Key instance from a plain javascript object
+     * Create a Key instance from a plain javascript object or an encoded string key
      *
-     * @param plain a plain object
+     * @param plain a plain object or a string encoded key
      */
     static fromPlain = (plain: { [key: string]: any } | string): Key => {
+        if (typeof plain === 'string') {
+            return Key.decode(plain);
+        }
         return plainToClass(Key, plain, cto);
     };
 

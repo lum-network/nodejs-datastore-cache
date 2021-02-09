@@ -1,7 +1,8 @@
 import * as datastore from '@google-cloud/datastore';
-import { ClassConstructor, classToPlain, ClassTransformOptions, Expose, Type, plainToClass, Transform } from 'class-transformer';
+import { entity as datastore_entity } from '@google-cloud/datastore/build/src/entity';
+import { ClassConstructor, classToPlain, ClassTransformOptions, plainToClass } from 'class-transformer';
 
-import { Key } from '.';
+import { Key, PersistKey } from '.';
 import { getKeyValue, propToPlain, propToDatastore } from './utils';
 
 const cto: ClassTransformOptions = { strategy: 'excludeAll' };
@@ -10,7 +11,7 @@ const cto: ClassTransformOptions = { strategy: 'excludeAll' };
  * DatastoreEntity as used by the datastore client for calls such as save
  */
 export type DatastoreEntity = {
-    key: datastore.Key;
+    key: datastore_entity.Key;
     data: { [Key: string]: unknown };
 };
 
@@ -20,14 +21,12 @@ export type DatastoreEntity = {
  * This abstract class is intented to be inherited by each model aiming to be saved at some point into the datastore.
  *
  * Important notes:
- * - @Expose() must be specified on all persisted properties
- * - @Type(() => Model | Type) must be specified on all persisted properties that are not native types
+ * - @Persist | @PersistKey | @PersistStruct must be specified on all properties that need to be persisted into datastore
  * - A property starting with an underscore `_` will be considered private and will not be persisted
  *
  */
 export abstract class Entity {
-    @Type(() => Key)
-    @Expose()
+    @PersistKey()
     key?: Key;
 
     /**
@@ -46,12 +45,12 @@ export abstract class Entity {
      * @param cls the class to convert the datastore entity into
      * @param store a datastore client instance
      */
-    static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>, store: datastore.Datastore): T => {
-        if (dsEntity[store.KEY]) {
+    static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>): T => {
+        if (dsEntity[datastore_entity.KEY_SYMBOL]) {
             // Deserializing from datastore response
             const plainData = classToPlain(dsEntity);
             const entity: T = plainToClass(cls, plainData, cto);
-            entity.key = Key.fromDatastore(dsEntity[store.KEY]);
+            entity.key = Key.fromDatastore(dsEntity[datastore_entity.KEY_SYMBOL]);
             return entity;
         }
         // Deserializing from previous toDatastore call
@@ -89,10 +88,9 @@ export abstract class Entity {
      * Converts entity properties into datastore properties
      * This method should rarely be used by outside code.
      *
-     * @param store a datastore client instance
      * @param nested whether or not the entity is the root entity or a nested one
      */
-    toDatastoreObject = (store: datastore.Datastore, nested: boolean): { [Key: string]: unknown } => {
+    toDatastoreObject = (nested: boolean): { [Key: string]: unknown } => {
         const obj: { [Key: string]: unknown } = {};
         const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
         for (const i in props) {
@@ -101,7 +99,7 @@ export abstract class Entity {
             if ((nested === false && p === 'key') || p.startsWith('_') || typeof v === 'function') {
                 continue;
             }
-            obj[p] = propToDatastore(v, store);
+            obj[p] = propToDatastore(v);
         }
         return obj;
     };
@@ -109,16 +107,14 @@ export abstract class Entity {
     /**
      * Converts entity properties into datastore properties
      * This method should rarely be used by outside code.
-     *
-     * @param store a datastore client instance
      */
-    toDatastore = (store: datastore.Datastore): DatastoreEntity => {
+    toDatastore = (): DatastoreEntity => {
         if (!this.key) {
             throw new Error('entity withou key cannot be saved into datastore');
         }
         return {
             key: this.key && this.key.toDatastore(),
-            data: this.toDatastoreObject(store, false),
+            data: this.toDatastoreObject(false),
         };
     };
 

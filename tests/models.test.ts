@@ -1,6 +1,6 @@
 import * as datastore from '@google-cloud/datastore';
-import { Type, Expose } from 'class-transformer';
-import { DataClient, Entity, GeoPt, Key } from '../src';
+
+import { DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 
 describe('DataModels', () => {
     describe('Key features', () => {
@@ -79,14 +79,13 @@ describe('DataModels', () => {
 
         it('should serialize and deserialize simple entities consistently', async () => {
             class MyEntity extends Entity {
-                @Expose()
+                @Persist()
                 text?: string;
 
-                @Expose()
+                @Persist()
                 number?: number;
 
-                @Type(() => Key)
-                @Expose()
+                @PersistKey()
                 child_key?: Key;
 
                 constructor(props?: Partial<MyEntity>) {
@@ -103,7 +102,7 @@ describe('DataModels', () => {
             });
 
             // Verify entity is ready to be saved into datastore
-            const e1ToDs = e1.toDatastore(clt.datastoreClient);
+            const e1ToDs = e1.toDatastore();
             expect(e1ToDs).toEqual({
                 'key': new datastore.Key({ path: ['MyEntity', 1234] }),
                 'data': {
@@ -118,7 +117,7 @@ describe('DataModels', () => {
 
             // Verify entity from datastore can be restored into model
             const [e1RawDs] = await clt.datastoreClient.get(e1ToDs.key);
-            const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity, clt.datastoreClient);
+            const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity);
             expect(JSON.stringify(e1FromDs)).toEqual(JSON.stringify(e1));
 
             // Verify entity is ready to be saved into cache as JSON
@@ -130,22 +129,24 @@ describe('DataModels', () => {
                 'number': 5678,
                 'child_key': await e1.child_key?.encode(clt.datastoreClient),
             });
+
+            // Verity entity from plain matches the original entity
+            const e1FromPlain = MyEntity.fromPlain(e1ToPlain, MyEntity);
+            expect(JSON.stringify(e1FromPlain)).toEqual(JSON.stringify(e1));
         });
 
         it('should serialize and deserialize complex entities consistently', async () => {
             class MyInnerEntity extends Entity {
-                @Expose()
+                @Persist()
                 info_text?: string;
 
-                @Expose()
+                @Persist()
                 info_number?: number;
 
-                @Type(() => GeoPt)
-                @Expose()
+                @PersistStruct(() => GeoPt)
                 info_location?: GeoPt;
 
-                @Type(() => Key)
-                @Expose()
+                @PersistKey()
                 info_key?: Key;
 
                 constructor(props?: Partial<MyInnerEntity>) {
@@ -155,29 +156,25 @@ describe('DataModels', () => {
             }
 
             class MyEntity extends Entity {
-                @Expose()
+                @Persist()
                 text?: string;
 
-                @Expose()
+                @Persist()
                 number?: number;
 
-                @Expose()
+                @Persist()
                 details?: string[];
 
-                @Type(() => GeoPt)
-                @Expose()
+                @PersistStruct(() => GeoPt)
                 location?: GeoPt;
 
-                @Type(() => Key)
-                @Expose()
+                @PersistKey()
                 child_key?: Key;
 
-                @Type(() => MyInnerEntity)
-                @Expose()
+                @PersistStruct(() => MyInnerEntity)
                 inner?: MyInnerEntity;
 
-                @Type(() => MyInnerEntity)
-                @Expose()
+                @PersistStruct(() => MyInnerEntity)
                 inners?: MyInnerEntity[];
 
                 constructor(props?: Partial<MyEntity>) {
@@ -216,7 +213,7 @@ describe('DataModels', () => {
             });
 
             // Verify entity is ready to be saved into datastore
-            const e1ToDs = e1.toDatastore(clt.datastoreClient);
+            const e1ToDs = e1.toDatastore();
             expect(e1ToDs).toEqual({
                 'key': new datastore.Key({ path: ['MyParentEntity', '1234-parent', 'MyEntity', 1234], namespace: 'subspace' }),
                 'data': {
@@ -253,12 +250,11 @@ describe('DataModels', () => {
 
             // Verify entity from datastore can be restored into model
             const [e1RawDs] = await clt.datastoreClient.get(e1ToDs.key);
-            const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity, clt.datastoreClient);
+            const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity);
             expect(JSON.stringify(e1FromDs)).toEqual(JSON.stringify(e1));
 
             // Verify entity is ready to be saved into cache as JSON
             const e1ToPlain = await e1.toPlain(clt.datastoreClient);
-
             expect(e1ToPlain).toEqual({
                 'key': await e1.key?.encode(clt.datastoreClient),
                 'text': 'hello',
@@ -287,6 +283,10 @@ describe('DataModels', () => {
                     },
                 ],
             });
+
+            // Verity entity from plain matches the original entity
+            const e1FromPlain = MyEntity.fromPlain(e1ToPlain, MyEntity);
+            expect(JSON.stringify(e1FromPlain)).toEqual(JSON.stringify(e1));
         });
     });
 });

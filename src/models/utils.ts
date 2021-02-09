@@ -19,15 +19,15 @@ export const getKeyValue = <T, K extends keyof T>(o: T, propertyName: K): T[K] =
  * @param elem either a native type or one of this module types (Entity, Key, GeoPt)
  * @param store a datastore client instance
  */
-export const propToDatastore = (elem: unknown, store: datastore.Datastore): any => {
+export const propToDatastore = (elem: unknown): any => {
     if (elem instanceof Array) {
-        return elem.map((v) => propToDatastore(v, store));
+        return elem.map((v) => propToDatastore(v));
     } else if (elem instanceof Entity) {
-        return (elem as Entity).toDatastoreObject(store, true);
+        return (elem as Entity).toDatastoreObject(true);
     } else if (elem instanceof Key) {
         return (elem as Key).toDatastore();
     } else if (elem instanceof GeoPt) {
-        return (elem as GeoPt).toDatastore(store);
+        return (elem as GeoPt).toDatastore();
     }
     return elem;
 };
