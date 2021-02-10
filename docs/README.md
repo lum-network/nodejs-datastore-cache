@@ -1,14 +1,23 @@
 # Documentation
 
-## Node version
+The code should be documented enough to make this library easy to use for anyone familiar with Google Cloud datastore.
 
-The library is developped and tested using **NodeJS v12 Erbium**.
+You can find more details by browsing the [code documentation](./lib).
 
-[Library code documentation](./lib)
+------
+
+## Examples
+
+A couple examples to help you get started.
+
+### Entity Models
+
+Each persisted property must either use one of the following decorators:
+- @PersistKey: For properties of type Key
+- @PersistStruct: For nested entities / class such as GeoPt
+- @Persist: For native types
 
 ```typescript
-import { Key, Entity, Persist, PersistKey, PersistStruct } from '@surprise/nodejs-datastore-cache';
-
 // MyInnerEntity model
 class MyInnerEntity extends Entity {
     @Persist()
@@ -38,7 +47,16 @@ class MyEntity extends Entity {
         Object.assign(this, props);
     }
 }
+```
 
+### Entity CRUD
+
+The Key class provides handlful datastore Key generation methods:
+- **Key.nameKey** to create a key with a string ID
+- **Key.idKey** to create a key with an integer ID
+- **Key.incompleteKey** to create a key and let the datastore provide a unique integer ID upon save
+
+```typescript
 // Create new entity instance
 const key = Key.nameKey('MyEntity', 'my-entity-id-01');
 const e = new MyEntity({
