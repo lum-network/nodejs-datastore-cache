@@ -242,7 +242,7 @@ ___
 
 ### runInTransaction
 
-▸ **runInTransaction**(`fn`: (`tx`: [*DataClient*](dataclient.md)) => *Promise*<*void*\>, `options?`: TransactionOptions): *Promise*<CommitResponse\>
+▸ **runInTransaction**(`fn`: (`tx`: [*DataClient*](dataclient.md)) => *Promise*<*void* \| Error\>, `options?`: TransactionOptions): *Promise*<CommitResponse\>
 
 Run the provided function into a datastore transaction.
 This method will create the transaction and commit it once fn() finishes
@@ -265,7 +265,7 @@ this.runInTransaction((tx) => {
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`fn` | (`tx`: [*DataClient*](dataclient.md)) => *Promise*<*void*\> | the function to execute within a transaction context   |
+`fn` | (`tx`: [*DataClient*](dataclient.md)) => *Promise*<*void* \| Error\> | the function to execute within a transaction context   |
 `options?` | TransactionOptions | optional transaction options    |
 
 **Returns:** *Promise*<CommitResponse\>
@@ -301,8 +301,8 @@ ___
 
 Run a query and returns the fetched entities
 
-This does not use any cache capability in order to maintain consistency.
-Using this method is not recommended as it does not beneficiate from the cache layer.
+This does not use any cache capability in order to maintain consistency
+Using this method is not recommended as it does not beneficiate from the cache layer
 Better use runKeysOnlyQuery followed by getMulti
 
 #### Type parameters:

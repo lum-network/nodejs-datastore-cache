@@ -248,8 +248,8 @@ export class DataClient {
     /**
      * Run a query and returns the fetched entities
      *
-     * This does not use any cache capability in order to maintain consistency.
-     * Using this method is not recommended as it does not beneficiate from the cache layer.
+     * This does not use any cache capability in order to maintain consistency
+     * Using this method is not recommended as it does not beneficiate from the cache layer
      * Better use runKeysOnlyQuery followed by getMulti
      *
      * @param cls the class to transform the results into
@@ -321,12 +321,15 @@ export class DataClient {
      * @param fn the function to execute within a transaction context
      * @param options optional transaction options
      */
-    runInTransaction = async (fn: (tx: DataClient) => Promise<void>, options?: datastore.TransactionOptions): Promise<CommitResponse> => {
+    runInTransaction = async (fn: (tx: DataClient) => Promise<Error | void>, options?: datastore.TransactionOptions): Promise<CommitResponse> => {
         const tx = this.newTransactionClient(options);
         await (tx.transaction as datastore.Transaction).run();
-        await fn(tx);
-        const res = await (tx.transaction as datastore.Transaction).commit();
-        return res;
+        const err = await fn(tx);
+        if (err) {
+            await (tx.transaction as datastore.Transaction).rollback();
+            throw err;
+        }
+        return await (tx.transaction as datastore.Transaction).commit();
     };
 
     /**

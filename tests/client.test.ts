@@ -173,7 +173,10 @@ describe('DataClient features', () => {
         });
 
         it('should be able to run transactions', async () => {
-            const e1Key = Key.incompleteKey('MyEntity');
+            const kind = 'MyEntity' + Math.ceil(Math.random() * 1000000).toString();
+
+            // transaction should succeed and commit
+            const e1Key = Key.nameKey(kind, 'id-001');
             const e1 = new MyEntity({
                 key: e1Key,
                 content: 'tx-entity-1',
@@ -182,6 +185,22 @@ describe('DataClient features', () => {
                 await txClt.save(e1);
             });
             expect(resp).not.toBeNull();
+
+            // entity should be persisted in datastore
+            let e = await clt.get(e1Key, MyEntity);
+            expect(e?.content).toEqual('tx-entity-1');
+
+            // transaction should fail and rollback
+            e1.content = 'tx-entity-2';
+            const future = clt.runInTransaction(async (txClt) => {
+                await txClt.save(e1);
+                return new Error('test error');
+            });
+            await expect(future).rejects.toThrow(new Error('test error'));
+
+            // entity should have not been updated in datastore
+            e = await clt.get(e1Key, MyEntity);
+            expect(e?.content).toEqual('tx-entity-1');
         });
 
         it('should be able to run keys only queries', async () => {
