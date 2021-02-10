@@ -71,11 +71,11 @@ describe('Cache Layer', () => {
         });
 
         it('can set keys to expire', async () => {
-            await expect(clt.set('expire-foo-bar', 'oh no!', 2)).resolves.toEqual(undefined);
+            await expect(clt.set('expire-foo-bar', 'oh no!', 1)).resolves.toEqual(undefined);
             await expect(clt.get('expire-foo-bar')).resolves.toEqual('oh no!');
             await (() =>
                 new Promise((resolve) => {
-                    setTimeout(resolve, 2000);
+                    setTimeout(resolve, 1100);
                 }))();
             await expect(clt.get('expire-foo-bar')).resolves.toEqual(null);
         });

@@ -48,18 +48,12 @@ export abstract class Entity {
     static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>): T => {
         if (dsEntity[datastore_entity.KEY_SYMBOL]) {
             // Deserializing from datastore response
-            const plainData = classToPlain(dsEntity);
-            const entity: T = plainToClass(cls, plainData, cto);
+            const entity: T = plainToClass(cls, dsEntity, cto);
             entity.key = Key.fromDatastore(dsEntity[datastore_entity.KEY_SYMBOL]);
             return entity;
         }
-        // Deserializing from previous toDatastore call
-        const plainData = classToPlain(dsEntity.data);
-        const entity: T = plainToClass(cls, plainData, cto);
-        if (dsEntity.key) {
-            entity.key = Key.fromDatastore(dsEntity.key);
-        }
-        return entity;
+        // Deserializing invalid entity
+        throw Error('cannot deserialize entity without key');
     };
 
     /**

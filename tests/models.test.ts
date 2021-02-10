@@ -1,4 +1,5 @@
 import * as datastore from '@google-cloud/datastore';
+import { plainToClass } from 'class-transformer';
 
 import { DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 
@@ -111,6 +112,11 @@ describe('DataModels', () => {
                     'child_key': new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
                 },
             });
+
+            // Verify entity cannot be restored until saved into datastore
+            expect(() => {
+                MyEntity.fromDatastore(e1ToDs, MyEntity);
+            }).toThrow(Error);
 
             // Save entity into datastore
             await clt.datastoreClient.save(e1ToDs);
@@ -244,6 +250,11 @@ describe('DataModels', () => {
                     ],
                 },
             });
+
+            // Verify entity cannot be restored until saved into datastore
+            expect(() => {
+                MyEntity.fromDatastore(e1ToDs, MyEntity);
+            }).toThrow(Error);
 
             // Save entity into datastore
             await clt.datastoreClient.save(e1ToDs);
