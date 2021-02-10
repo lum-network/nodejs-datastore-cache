@@ -171,5 +171,75 @@ describe('DataClient features', () => {
             expect(cached.length).toEqual(7);
             expect(cached).toEqual([null, null, null, null, null, null, null]);
         });
+
+        it('should be able to run transactions', async () => {
+            const e1Key = Key.incompleteKey('MyEntity');
+            const e1 = new MyEntity({
+                key: e1Key,
+                content: 'tx-entity-1',
+            });
+            const resp = await clt.runInTransaction(async (txClt) => {
+                await txClt.save(e1);
+            });
+            expect(resp).not.toBeNull();
+        });
+
+        it('should be able to run keys only queries', async () => {
+            const kind = 'MyEntity' + Math.ceil(Math.random() * 1000000).toString();
+
+            let originalEntities = ['a', 'b', 'c'].map((n) => new MyEntity({ key: Key.nameKey(kind, n), content: n }));
+            await clt.saveMulti(originalEntities);
+            let [keys, nextCursor, more] = await clt.runKeysOnlyQuery(clt.createQuery(kind));
+            expect(keys.length).toEqual(3);
+            expect(more).toBeFalsy();
+            expect(JSON.stringify(keys)).toEqual(JSON.stringify(originalEntities.map((e) => e.key)));
+
+            originalEntities = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((n) => new MyEntity({ key: Key.nameKey(kind, n), content: n }));
+            await clt.saveMulti(originalEntities);
+            // First page should contain 3 elements
+            [keys, nextCursor, more] = await clt.runKeysOnlyQuery(clt.createQuery(kind), 3);
+            expect(keys.length).toEqual(3);
+            expect(more).toBeTruthy();
+            expect(JSON.stringify(keys)).toEqual(JSON.stringify(originalEntities.slice(0, 3).map((e) => e.key)));
+            // Second page should contain 3 elements
+            [keys, nextCursor, more] = await clt.runKeysOnlyQuery(clt.createQuery(kind), 3, nextCursor);
+            expect(keys.length).toEqual(3);
+            expect(more).toBeTruthy();
+            expect(JSON.stringify(keys)).toEqual(JSON.stringify(originalEntities.slice(3, 6).map((e) => e.key)));
+            // Third page should contain 2 elements
+            [keys, nextCursor, more] = await clt.runKeysOnlyQuery(clt.createQuery(kind), 3, nextCursor);
+            expect(keys.length).toEqual(2);
+            expect(more).toBeFalsy();
+            expect(JSON.stringify(keys)).toEqual(JSON.stringify(originalEntities.slice(6, 8).map((e) => e.key)));
+        });
+
+        it('should be able to run queries', async () => {
+            const kind = 'MyEntity' + Math.ceil(Math.random() * 1000000).toString();
+
+            let originalEntities = ['d', 'e', 'f'].map((n) => new MyEntity({ key: Key.nameKey(kind, n), content: n }));
+            await clt.saveMulti(originalEntities);
+            let [entities, nextCursor, more] = await clt.runQuery(MyEntity, clt.createQuery(kind));
+            expect(entities.length).toEqual(3);
+            expect(more).toBeFalsy();
+            expect(JSON.stringify(entities)).toEqual(JSON.stringify(originalEntities));
+
+            originalEntities = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map((n) => new MyEntity({ key: Key.nameKey(kind, n), content: n }));
+            await clt.saveMulti(originalEntities);
+            // First page should contain 3 elements
+            [entities, nextCursor, more] = await clt.runQuery(MyEntity, clt.createQuery(kind), 3);
+            expect(entities.length).toEqual(3);
+            expect(more).toBeTruthy();
+            expect(JSON.stringify(entities)).toEqual(JSON.stringify(originalEntities.slice(0, 3)));
+            // Second page should contain 3 elements
+            [entities, nextCursor, more] = await clt.runQuery(MyEntity, clt.createQuery(kind), 3, nextCursor);
+            expect(entities.length).toEqual(3);
+            expect(more).toBeTruthy();
+            expect(JSON.stringify(entities)).toEqual(JSON.stringify(originalEntities.slice(3, 6)));
+            // Third page should contain 2 elements
+            [entities, nextCursor, more] = await clt.runQuery(MyEntity, clt.createQuery(kind), 3, nextCursor);
+            expect(entities.length).toEqual(2);
+            expect(more).toBeFalsy();
+            expect(JSON.stringify(entities)).toEqual(JSON.stringify(originalEntities.slice(6, 8)));
+        });
     });
 });

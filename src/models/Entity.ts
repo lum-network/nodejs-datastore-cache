@@ -1,6 +1,6 @@
 import * as datastore from '@google-cloud/datastore';
 import { entity as datastore_entity } from '@google-cloud/datastore/build/src/entity';
-import { ClassConstructor, classToPlain, ClassTransformOptions, plainToClass } from 'class-transformer';
+import { ClassConstructor, ClassTransformOptions, plainToClass } from 'class-transformer';
 
 import { Key, PersistKey } from '.';
 import { getKeyValue, propToPlain, propToDatastore } from './utils';
@@ -21,7 +21,7 @@ export type DatastoreEntity = {
  * This abstract class is intented to be inherited by each model aiming to be saved at some point into the datastore.
  *
  * Important notes:
- * - @Persist | @PersistKey | @PersistStruct must be specified on all properties that need to be persisted into datastore
+ * - @Persist | @PersistKey | @PersistStruct must be specified on all properties that need to be persisted into datastore and cache
  * - A property starting with an underscore `_` will be considered private and will not be persisted
  *
  */

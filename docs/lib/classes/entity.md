@@ -5,7 +5,7 @@ Entity abstract wrapper for datastore entities.
 This abstract class is intented to be inherited by each model aiming to be saved at some point into the datastore.
 
 Important notes:
-- @Persist | @PersistKey | @PersistStruct must be specified on all properties that need to be persisted into datastore
+- @Persist | @PersistKey | @PersistStruct must be specified on all properties that need to be persisted into datastore and cache
 - A property starting with an underscore `_` will be considered private and will not be persisted
 
 ## Hierarchy

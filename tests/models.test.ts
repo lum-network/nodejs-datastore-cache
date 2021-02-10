@@ -1,5 +1,4 @@
 import * as datastore from '@google-cloud/datastore';
-import { plainToClass } from 'class-transformer';
 
 import { DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 

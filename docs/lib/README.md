@@ -4,6 +4,7 @@
 
 ### Classes
 
+- [DataClient](classes/dataclient.md)
 - [Entity](classes/entity.md)
 - [GeoPt](classes/geopt.md)
 - [Key](classes/key.md)
