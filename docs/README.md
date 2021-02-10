@@ -4,8 +4,6 @@ The code should be documented enough to make this library easy to use for anyone
 
 You can find more details by browsing the [code documentation](./lib).
 
----
-
 ## Examples
 
 A couple examples to help you get started.
