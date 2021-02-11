@@ -9,7 +9,7 @@
     ],
     "scripts": {
         "test": "unset GOOGLE_APPLICATION_CREDENTIALS && export DATASTORE_EMULATOR_HOST='localhost:8081' && export DATASTORE_PROJECT_ID='dev' && cross-env NODE_ENV=test jest",
-        "build": "yarn clean && yarn build:types && yarn build:js",
+        "build": "yarn clean && yarn build:types && yarn build:js && yarn build:docs",
         "build:types": "tsc --emitDeclarationOnly",
         "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
         "build:docs": "rimraf docs/lib && typedoc --excludeExternals --excludeNotDocumented --readme none --out docs/lib --hideBreadcrumbs --disableSources",

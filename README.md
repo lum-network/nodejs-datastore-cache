@@ -37,6 +37,24 @@ yarn add @surprise/nodejs-datastore-cache
 
 The [Library documentation](./docs) should contain everything you need to get started.
 
+## Development & Testing
+
+The library requires a Google Cloud datastore and a running redis server to run the unittests.
+
+A docker compose file is provided to simplify this process but those services can eventually be remote or launched "manually".
+
+### Datastore emulator & Redis server
+
+```bash
+docker-compose up
+```
+
+### Run the unittests
+
+```bash
+yarn test
+```
+
 ## License
 
 Apache Version 2.0
