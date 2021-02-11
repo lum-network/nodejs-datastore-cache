@@ -55,6 +55,14 @@ docker-compose up
 yarn test
 ```
 
+## Contributing
+
+All contributions must be covered by unit tests.
+
+- Simply use a pull requests
+- Package version should be bumped by a maintainer
+- Upon PR merge on master an admin must tag the merge commit to trigger the release and package publish workflows
+
 ## License
 
 Apache Version 2.0
