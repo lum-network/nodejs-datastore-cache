@@ -36,8 +36,10 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@master
+      - name: Install Cloud beta commands
+        run: gcloud components install beta --quiet
       - name: Launch datastore emulator
-        run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081 --quiet
+        run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
