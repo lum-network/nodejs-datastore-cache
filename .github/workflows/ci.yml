@@ -44,7 +44,7 @@ jobs:
       - name: Install Cloud beta emulator
         run: gcloud components install cloud-datastore-emulator --quiet
       - name: Launch datastore emulator
-        run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081
+        run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081 &
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
