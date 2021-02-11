@@ -1,7 +1,19 @@
 {
-    "name": "@surprise/nodejs-datastore-cache",
-    "version": "1.0.0",
+    "name": "@horus-tech/nodejs-datastore-cache",
+    "version": "1.0.3",
     "license": "Apache-2.0",
+    "description": "Opinionated NodeJS library for simplified google cloud datastore and cache layer interactions.",
+    "homepage": "https://github.com/horus-tech/nodejs-datastore-cache#readme",
+    "bugs": {
+        "url": "https://github.com/horus-tech/nodejs-datastore-cache/issues"
+    },
+    "author": {
+        "name": "Horus"
+    },
+    "repository": {
+        "url": "git+https://github.com/horus-tech/nodejs-datastore-cache.git",
+        "type": "git"
+    },
     "main": "lib/index.js",
     "typings": "lib/index.d.ts",
     "files": [
@@ -15,7 +27,8 @@
         "build:docs": "rimraf docs/lib && typedoc --excludeExternals --excludeNotDocumented --readme none --out docs/lib --hideBreadcrumbs --disableSources",
         "clean": "rimraf lib",
         "lint": "eslint '**/*.{ts,js}'",
-        "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json,md,html,yml}'"
+        "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json,md,html,yml}'",
+        "bump": "npm version"
     },
     "dependencies": {
         "@google-cloud/datastore": "^6.3.1",

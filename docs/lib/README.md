@@ -1,4 +1,4 @@
-# @surprise/nodejs-datastore-cache
+# @horus-tech/nodejs-datastore-cache
 
 ## Table of contents
 

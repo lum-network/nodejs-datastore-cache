@@ -30,7 +30,7 @@ The library is tested using **NodeJS 10.x, 12.x, 14.x, 15.x**.
 ## Installation
 
 ```bash
-yarn add @surprise/nodejs-datastore-cache
+yarn add @horus-tech/nodejs-datastore-cache
 ```
 
 ## Documentation
@@ -54,6 +54,14 @@ docker-compose up
 ```bash
 yarn test
 ```
+
+## Contributing
+
+All contributions must be covered by unit tests.
+
+- Simply use a pull requests
+- Package version should be bumped by a maintainer using something like `yarn bump major | minor | patch`
+- Upon PR merge on master an admin must tag the merge commit to trigger the release and package publish workflows
 
 ## License
 
