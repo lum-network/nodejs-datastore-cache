@@ -1,6 +1,6 @@
 {
     "name": "@horus-tech/nodejs-datastore-cache",
-    "version": "1.0.4",
+    "version": "1.0.0",
     "license": "Apache-2.0",
     "description": "Opinionated NodeJS library for simplified google cloud datastore and cache layer interactions.",
     "homepage": "https://github.com/horus-tech/nodejs-datastore-cache#readme",
@@ -11,8 +11,8 @@
         "name": "Horus"
     },
     "repository": {
-        "url": "git+https://github.com/horus-tech/nodejs-datastore-cache.git",
-        "type": "git"
+        "type": "git",
+        "url": "https://github.com/horus-tech/nodejs-datastore-cache.git"
     },
     "main": "lib/index.js",
     "typings": "lib/index.d.ts",
