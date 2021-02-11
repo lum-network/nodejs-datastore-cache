@@ -8,32 +8,55 @@ on:
 jobs:
   build:
     name: Release & Publish
+
     runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x]
+        redis-version: [5]
+        python-version: [2.7]
+
+    env:
+      CLOUDSDK_CORE_PROJECT: dev
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup node
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
-          registry-url: https://registry.npmjs.org
+          node-version: ${{ matrix.node-version }}
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+          python-version: ${{ matrix.python-version }}
+
+      - name: Launch Redis server
+        uses: supercharge/redis-github-action@1.2.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+      - name: Install Cloud beta commands
+        run: gcloud components install beta --quiet
+      - name: Install Cloud beta emulator
+        run: gcloud components install cloud-datastore-emulator --quiet
+      - name: Launch datastore emulator
+        run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081 &
 
       - name: Install dependencies
         run: yarn --frozen-lockfile
+      - name: Run code formatter
+        run: yarn format
+      - name: Run code linter
+        run: yarn lint
       - name: Run unit tests
         run: yarn test
+
       - name: Run build lib, types and docs
         run: yarn build
       - name: Copy LICENSE
