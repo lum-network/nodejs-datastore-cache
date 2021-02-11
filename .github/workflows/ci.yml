@@ -24,6 +24,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
       - name: Launch Redis server
         uses: supercharge/redis-github-action@1.2.0
         with:
@@ -31,11 +36,8 @@ jobs:
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@master
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python-version }}
-
+      - name: Install Cloud beta components
+        run: gcloud components install cloud-datastore-emulator 
       - name: Launch datastore emulator
         run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081
 
