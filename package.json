@@ -11,8 +11,8 @@
         "name": "Horus"
     },
     "repository": {
-        "url": "git+https://github.com/horus-tech/nodejs-datastore-cache.git",
-        "type": "git"
+        "type": "git",
+        "url": "https://github.com/horus-tech/nodejs-datastore-cache.git"
     },
     "main": "lib/index.js",
     "typings": "lib/index.d.ts",

@@ -1,4 +1,5 @@
 # NodeJS Datastore Cache library
+[![npm version](https://badge.fury.io/js/%40horus-tech%2Fnodejs-datastore-cache.svg)](https://badge.fury.io/js/%40horus-tech%2Fnodejs-datastore-cache)
 
 **Opinionated NodeJS library for simplified google cloud datastore and cache layer interactions.**
 
@@ -60,8 +61,9 @@ yarn test
 All contributions must be covered by unit tests.
 
 - Simply use a pull requests
+- Documentation should be updated before submitting the PR using `yarn build:docs`
 - Package version should be bumped by a maintainer using something like `yarn bump major | minor | patch`
-- Upon PR merge on master an admin must tag the merge commit to trigger the release and package publish workflows
+- Upon PR merge on master an admin must tag the merge commit using the package version (ex: v1.0.0) to trigger the release and package publish workflows
 
 ## License
 

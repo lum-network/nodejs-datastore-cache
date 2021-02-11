@@ -1,20 +1,20 @@
-name: CI
+name: CD
 
 on:
-  pull_request:
-    branches:
-      - master
-      - develop
+  push:
+    tags:
+      - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build:
-    name: Format Lint Test Build
+    name: Release & Publish
+
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x, 15.x]
-        redis-version: [4, 5, 6]
+        node-version: [12.x]
+        redis-version: [5]
         python-version: [2.7]
 
     env:
@@ -28,6 +28,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Use Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
@@ -56,5 +57,16 @@ jobs:
         run: yarn lint
       - name: Run unit tests
         run: yarn test
+
       - name: Run build lib, types and docs
         run: yarn build
+      - name: Copy LICENSE
+        run: cp LICENSE lib/LICENSE
+      - name: Copy README
+        run: cp README.md lib/README.md
+      - name: Copy sanitized package.json
+        run: cp package.json lib/package.json
+      - name: Publish package to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_PUBLISH_TOKEN }}
