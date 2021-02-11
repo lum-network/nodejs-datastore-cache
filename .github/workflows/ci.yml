@@ -16,6 +16,9 @@ jobs:
         redis-version: [5] #[4, 5, 6]
         python-version: [2.7]
 
+    env:
+      CLOUDSDK_CORE_PROJECT: dev
+
     steps:
       - uses: actions/checkout@v2
 
