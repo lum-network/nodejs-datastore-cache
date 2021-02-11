@@ -49,7 +49,7 @@ jobs:
       - name: Install dependencies
         run: yarn --frozen-lockfile
       - name: Run code formatter
-        run: yarn format --check src
+        run: yarn format
       - name: Run code linter
         run: yarn lint
       - name: Run unit tests
