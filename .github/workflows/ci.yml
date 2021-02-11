@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x, 12.x, 14.x, 15.x]
+        redis-version: [4, 5, 6]
+        python-version: [2.7]
+
+    env:
+      CLOUDSDK_CORE_PROJECT: dev
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Use Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Launch Redis server
+        uses: supercharge/redis-github-action@1.2.0
+        with:
+          redis-version: ${{ matrix.redis-version }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@master
+      - name: Install Cloud beta commands
+        run: gcloud components install beta --quiet
+      - name: Install Cloud beta emulator
+        run: gcloud components install cloud-datastore-emulator --quiet
+      - name: Launch datastore emulator
+        run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081 &
+
+      - name: Install dependencies
+        run: yarn --frozen-lockfile
+      - name: Run code formatter
+        run: yarn format
+      - name: Run code linter
+        run: yarn lint
+      - name: Run unit tests
+        run: yarn test
+      - name: Run build lib, types and docs
+        run: yarn build

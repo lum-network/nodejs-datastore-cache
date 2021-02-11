@@ -8,20 +8,29 @@
         "lib/*"
     ],
     "scripts": {
-        "test": "cross-env NODE_ENV=test jest",
-        "build": "yarn clean && yarn build:types && yarn build:js",
+        "test": "unset GOOGLE_APPLICATION_CREDENTIALS && export DATASTORE_EMULATOR_HOST='localhost:8081' && export DATASTORE_PROJECT_ID='dev' && cross-env NODE_ENV=test jest",
+        "build": "yarn clean && yarn build:types && yarn build:js && yarn build:docs",
         "build:types": "tsc --emitDeclarationOnly",
         "build:js": "babel src --out-dir lib --extensions \".ts,.tsx\" --source-maps inline",
+        "build:docs": "rimraf docs/lib && typedoc --excludeExternals --excludeNotDocumented --readme none --out docs/lib --hideBreadcrumbs --disableSources",
         "clean": "rimraf lib",
         "lint": "eslint '**/*.{ts,js}'",
         "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json,md,html,yml}'"
     },
-    "dependencies": {},
+    "dependencies": {
+        "@google-cloud/datastore": "^6.3.1",
+        "@types/redis": "^2.8.28",
+        "class-transformer": "^0.3.2",
+        "node-redis": "^0.1.7",
+        "redis": "^3.0.2",
+        "reflect-metadata": "^0.1.13"
+    },
     "optionalDependencies": {},
     "devDependencies": {
         "@babel/cli": "^7.8.3",
         "@babel/core": "^7.8.3",
         "@babel/plugin-proposal-class-properties": "^7.8.3",
+        "@babel/plugin-proposal-decorators": "^7.12.13",
         "@babel/plugin-transform-runtime": "^7.12.10",
         "@babel/preset-env": "^7.8.3",
         "@babel/preset-typescript": "^7.8.3",
@@ -33,6 +42,8 @@
         "prettier": "^2.2.1",
         "rimraf": "^3.0.2",
         "ts-jest": "^26.5.0",
+        "typedoc": "^0.20.23",
+        "typedoc-plugin-markdown": "^3.4.5",
         "typescript": "^4.1.3"
     }
 }

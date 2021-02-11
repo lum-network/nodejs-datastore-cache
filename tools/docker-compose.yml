@@ -1,0 +1,14 @@
+version: '2.1'
+services:
+    redis:
+        image: redis:5
+        command: [sh, -c, 'rm -f /data/dump.rdb && redis-server'] # disable persistence for testing purposes
+        ports:
+            - '6379:6379'
+    datastore:
+        image: google/cloud-sdk
+        command: ['gcloud', 'beta', 'emulators', 'datastore', 'start', '--no-store-on-disk', '--consistency', '1.0', '--host-port', '0.0.0.0:8081']
+        ports:
+            - '8081:8081'
+        environment:
+            - CLOUDSDK_CORE_PROJECT=dev

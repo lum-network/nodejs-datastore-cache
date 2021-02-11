@@ -17,8 +17,15 @@
         "pretty": true,
         "sourceMap": true,
         "strict": true,
-        "target": "es2018"
+        "target": "es2018",
+        "experimentalDecorators": true
     },
-    "include": ["src/**/*.ts", "test/**/*.ts"],
+    "typedocOptions": {
+        "entryPoints": ["src/index.ts"],
+        // "mode": "file",
+        "out": "docs",
+        "exclude": []
+    },
+    "include": ["src/**/*.ts", "tests/**/*.ts"],
     "exclude": ["node_modules"]
 }
