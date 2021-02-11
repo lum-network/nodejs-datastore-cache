@@ -25,7 +25,7 @@ Core dependencies include:
 
 ## Node version
 
-The library is developped and tested using **NodeJS v12 Erbium**.
+The library is tested using **NodeJS 10.x, 12.x, 14.x, 15.x**.
 
 ## Installation
 
