@@ -38,6 +38,8 @@ jobs:
         uses: google-github-actions/setup-gcloud@master
       - name: Install Cloud beta commands
         run: gcloud components install beta --quiet
+      - name: Install Cloud beta emulator
+        run: gcloud components install cloud-datastore-emulator --quiet
       - name: Launch datastore emulator
         run: gcloud beta emulators datastore start --no-store-on-disk --consistency 1.0 --host-port 0.0.0.0:8081
 
