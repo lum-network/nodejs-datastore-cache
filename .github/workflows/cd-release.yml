@@ -1,14 +1,13 @@
-name: Release
+name: CD Release
 
 on:
   push:
-    branches:
-      - master
     tags:
       - "v*" # Push events to matching v*, i.e. v1.0, v20.15.10
 
 jobs:
   build:
+    if: github.event.base_ref == 'refs/heads/master'
     name: Create Release
     runs-on: ubuntu-latest
     steps:

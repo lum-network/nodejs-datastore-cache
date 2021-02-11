@@ -30,7 +30,7 @@ The library is tested using **NodeJS 10.x, 12.x, 14.x, 15.x**.
 ## Installation
 
 ```bash
-yarn add @surprise/nodejs-datastore-cache
+yarn add @horus-tech/nodejs-datastore-cache
 ```
 
 ## Documentation
