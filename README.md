@@ -1,4 +1,5 @@
 # NodeJS Datastore Cache library
+[![npm version](https://badge.fury.io/js/%40horus-tech%2Fnodejs-datastore-cache.svg)](https://badge.fury.io/js/%40horus-tech%2Fnodejs-datastore-cache)
 
 **Opinionated NodeJS library for simplified google cloud datastore and cache layer interactions.**
 
