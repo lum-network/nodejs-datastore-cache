@@ -24,6 +24,12 @@ const cltRedisCache = new DataClient({}, new RedisCacheClient());
 
 - [constructor](dataclient.md#constructor)
 
+### Properties
+
+- [cacheClient](dataclient.md#cacheclient)
+- [datastoreClient](dataclient.md#datastoreclient)
+- [transaction](dataclient.md#transaction)
+
 ### Methods
 
 - [\_req](dataclient.md#_req)
@@ -59,6 +65,24 @@ Name | Type | Description |
 `cloneClient?` | [*DataClient*](dataclient.md) | mostly used internally to clone the client during transactions    |
 
 **Returns:** [*DataClient*](dataclient.md)
+
+## Properties
+
+### cacheClient
+
+• **cacheClient**: ICacheClient
+
+___
+
+### datastoreClient
+
+• **datastoreClient**: *Datastore*
+
+___
+
+### transaction
+
+• `Optional` **transaction**: *undefined* \| *Transaction*
 
 ## Methods
 

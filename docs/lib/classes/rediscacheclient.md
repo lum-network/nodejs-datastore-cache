@@ -16,6 +16,11 @@ Redis cache layer implementation using https://github.com/NodeRedis/node-redis
 
 - [constructor](rediscacheclient.md#constructor)
 
+### Properties
+
+- [client](rediscacheclient.md#client)
+- [eventsCallback](rediscacheclient.md#eventscallback)
+
 ### Methods
 
 - [close](rediscacheclient.md#close)
@@ -44,6 +49,18 @@ Name | Type | Description |
 `eventsCallback?` | (`event`: CacheClientEvent) => *void* | events callback    |
 
 **Returns:** [*RedisCacheClient*](rediscacheclient.md)
+
+## Properties
+
+### client
+
+• **client**: *RedisClient*
+
+___
+
+### eventsCallback
+
+• **eventsCallback**: (`event`: CacheClientEvent) => *void*
 
 ## Methods
 
