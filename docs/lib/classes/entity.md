@@ -18,6 +18,10 @@ Important notes:
 
 - [constructor](entity.md#constructor)
 
+### Properties
+
+- [key](entity.md#key)
+
 ### Methods
 
 - [toDatastore](entity.md#todatastore)
@@ -41,6 +45,12 @@ Name | Type | Description |
 `key?` | [*Key*](key.md) | the entity key    |
 
 **Returns:** [*Entity*](entity.md)
+
+## Properties
+
+### key
+
+• `Optional` **key**: *undefined* \| [*Key*](key.md)
 
 ## Methods
 

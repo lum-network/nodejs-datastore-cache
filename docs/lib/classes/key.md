@@ -25,9 +25,18 @@ const k3 = Key.incompleteKey(
 
 - [constructor](key.md#constructor)
 
+### Properties
+
+- [id](key.md#id)
+- [kind](key.md#kind)
+- [name](key.md#name)
+- [namespace](key.md#namespace)
+- [parent](key.md#parent)
+
 ### Methods
 
 - [encode](key.md#encode)
+- [path](key.md#path)
 - [toDatastore](key.md#todatastore)
 - [toPlain](key.md#toplain)
 - [decode](key.md#decode)
@@ -57,6 +66,36 @@ Name | Type | Description |
 
 **Returns:** [*Key*](key.md)
 
+## Properties
+
+### id
+
+• `Optional` **id**: *undefined* \| *number*
+
+___
+
+### kind
+
+• **kind**: *string*
+
+___
+
+### name
+
+• `Optional` **name**: *undefined* \| *string*
+
+___
+
+### namespace
+
+• `Optional` **namespace**: *undefined* \| *string*
+
+___
+
+### parent
+
+• `Optional` **parent**: *undefined* \| [*Key*](key.md)
+
 ## Methods
 
 ### encode
@@ -75,6 +114,14 @@ Name | Type | Description |
 `locationPrefix?` | *string* | An optional location prefix    |
 
 **Returns:** *Promise*<*string*\>
+
+___
+
+### path
+
+▸ **path**(): (*string* \| *number*)[]
+
+**Returns:** (*string* \| *number*)[]
 
 ___
 

@@ -63,19 +63,7 @@ export abstract class Entity {
      * @param cls the class to convert the plain object into
      */
     static fromPlain = <T extends Entity>(plainEntity: object, cls: ClassConstructor<T>): T => {
-        const e = plainToClass(cls, plainEntity, cto);
-        // const props = Object.getOwnPropertyNames(e) as Array<keyof Entity>;
-
-        // // @ts-ignore
-        // const t = new Entity();
-        // const reflectedType = (Reflect as any).getMetadata('design:type', Entity.prototype, 'key');
-        // console.log('-.-.->', reflectedType);
-
-        // for (const i in props) {
-        //     const p = props[i];
-        //     console.log('----->', p, Reflect.getMetadata('design:type', e, p));
-        // }
-        return e;
+        return plainToClass(cls, plainEntity, cto);
     };
 
     /**

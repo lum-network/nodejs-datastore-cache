@@ -17,6 +17,11 @@ const pt = new GeoPt(42.0, 2.0);
 
 - [constructor](geopt.md#constructor)
 
+### Properties
+
+- [latitude](geopt.md#latitude)
+- [longitude](geopt.md#longitude)
+
 ### Methods
 
 - [toDatastore](geopt.md#todatastore)
@@ -38,6 +43,18 @@ Name | Type | Description |
 `longitude` | *number* | Geo point longitude    |
 
 **Returns:** [*GeoPt*](geopt.md)
+
+## Properties
+
+### latitude
+
+• **latitude**: *number*
+
+___
+
+### longitude
+
+• **longitude**: *number*
 
 ## Methods
 
@@ -61,5 +78,10 @@ ___
 Converts the current GeoPt instance into a plain object with a latitude and a longitude.
 
 **Returns:** *object*
+
+Name | Type |
+------ | ------ |
+`latitude` | *number* |
+`longitude` | *number* |
 
 Plain object

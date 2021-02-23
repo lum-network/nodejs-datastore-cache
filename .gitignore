@@ -104,5 +104,4 @@ dist
 .tern-port
 
 # Build output
-/lib
-/typings
+/build
