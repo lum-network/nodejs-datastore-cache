@@ -51,7 +51,7 @@ A docker compose file is provided to simplify this process but those services ca
 ### Datastore emulator & Redis server
 
 ```bash
-docker-compose up
+docker-compose -f tools/docker-compose.yml up
 ```
 
 ### Run the unittests
