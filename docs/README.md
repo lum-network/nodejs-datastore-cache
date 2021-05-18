@@ -4,6 +4,12 @@ The code should be documented enough to make this library easy to use for anyone
 
 You can find more details by browsing the [code documentation](./lib).
 
+## Disclaimer
+
+This library basically provides a clean wrapper around the @google-cloud/datastore library and works around the various shady implementations provided by the said library.
+
+Therefore, using the @google-cloud/datastore directly, in parallel to this library, is highly discouraged as it can lead to undesired behaviours.
+
 ## Examples
 
 A couple examples to help you get started.

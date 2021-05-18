@@ -17,13 +17,13 @@ describe('DataModels', () => {
             const k1 = clt.datastoreClient.key(['MyEntity', 'foo']);
             const mk1 = Key.nameKey('MyEntity', 'foo');
             expect(mk1.toDatastore()).toEqual(k1);
-            expect(mk1.path()).toEqual(k1.path);
+            expect(mk1.path).toEqual(k1.path);
             expect(mk1.encode(clt.datastoreClient)).toEqual(clt.datastoreClient.keyToLegacyUrlSafe(k1));
 
             const k2 = clt.datastoreClient.key(['MyParentEntity', 'foobar', 'MyEntity', 'bar']);
             const mk2 = Key.nameKey('MyEntity', 'bar', undefined, Key.nameKey('MyParentEntity', 'foobar'));
             expect(mk2.toDatastore()).toEqual(k2);
-            expect(mk2.path()).toEqual(k2.path);
+            expect(mk2.path).toEqual(k2.path);
             expect(mk2.encode(clt.datastoreClient)).toEqual(clt.datastoreClient.keyToLegacyUrlSafe(k2));
 
             const mk3 = Key.fromDatastore(k2);
@@ -32,7 +32,7 @@ describe('DataModels', () => {
             const k4 = clt.datastoreClient.key(['MyParentEntity', 1234, 'MyEntity', 5678]);
             const mk4 = Key.idKey('MyEntity', 5678, undefined, Key.idKey('MyParentEntity', 1234));
             expect(mk4.toDatastore()).toEqual(k4);
-            expect(mk4.path()).toEqual(k4.path);
+            expect(mk4.path).toEqual(k4.path);
             expect(mk4.encode(clt.datastoreClient)).toEqual(clt.datastoreClient.keyToLegacyUrlSafe(k4));
 
             const mk5 = Key.fromDatastore(k4);

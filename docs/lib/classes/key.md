@@ -27,16 +27,20 @@ const k3 = Key.incompleteKey(
 
 ### Properties
 
+- [key](key.md#key)
+
+### Accessors
+
 - [id](key.md#id)
 - [kind](key.md#kind)
 - [name](key.md#name)
 - [namespace](key.md#namespace)
 - [parent](key.md#parent)
+- [path](key.md#path)
 
 ### Methods
 
 - [encode](key.md#encode)
-- [path](key.md#path)
 - [toDatastore](key.md#todatastore)
 - [toPlain](key.md#toplain)
 - [decode](key.md#decode)
@@ -68,33 +72,117 @@ Name | Type | Description |
 
 ## Properties
 
+### key
+
+• **key**: *Key*
+
+## Accessors
+
 ### id
 
-• `Optional` **id**: *undefined* \| *number*
+• **id**(): *undefined* \| *number*
+
+**Returns:** *undefined* \| *number*
+
+• **id**(`id`: *undefined* \| *number*): *void*
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`id` | *undefined* \| *number* |
+
+**Returns:** *void*
 
 ___
 
 ### kind
 
-• **kind**: *string*
+• **kind**(): *string*
+
+**Returns:** *string*
+
+• **kind**(`kind`: *string*): *void*
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`kind` | *string* |
+
+**Returns:** *void*
 
 ___
 
 ### name
 
-• `Optional` **name**: *undefined* \| *string*
+• **name**(): *undefined* \| *string*
+
+**Returns:** *undefined* \| *string*
+
+• **name**(`name`: *undefined* \| *string*): *void*
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`name` | *undefined* \| *string* |
+
+**Returns:** *void*
 
 ___
 
 ### namespace
 
-• `Optional` **namespace**: *undefined* \| *string*
+• **namespace**(): *undefined* \| *string*
+
+**Returns:** *undefined* \| *string*
+
+• **namespace**(`namespace`: *undefined* \| *string*): *void*
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`namespace` | *undefined* \| *string* |
+
+**Returns:** *void*
 
 ___
 
 ### parent
 
-• `Optional` **parent**: *undefined* \| [*Key*](key.md)
+• **parent**(): *undefined* \| [*Key*](key.md)
+
+**Returns:** *undefined* \| [*Key*](key.md)
+
+• **parent**(`key`: *undefined* \| [*Key*](key.md)): *void*
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`key` | *undefined* \| [*Key*](key.md) |
+
+**Returns:** *void*
+
+___
+
+### path
+
+• **path**(): (*string* \| *number*)[]
+
+**Returns:** (*string* \| *number*)[]
+
+• **path**(`path`: (*string* \| *number*)[]): *void*
+
+#### Parameters:
+
+Name | Type |
+------ | ------ |
+`path` | (*string* \| *number*)[] |
+
+**Returns:** *void*
 
 ## Methods
 
@@ -114,14 +202,6 @@ Name | Type | Description |
 `locationPrefix?` | *string* | An optional location prefix    |
 
 **Returns:** *Promise*<*string*\>
-
-___
-
-### path
-
-▸ **path**(): (*string* \| *number*)[]
-
-**Returns:** (*string* \| *number*)[]
 
 ___
 

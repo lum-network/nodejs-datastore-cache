@@ -39,36 +39,76 @@ export const PersistKey = (options: ExposeOptions = {}): PropertyDecorator => {
  * ```
  */
 export class Key {
-    @Persist()
-    kind: string;
+    key: datastore.Key;
 
-    @PersistStruct(() => Number)
-    id?: number;
+    @Persist({ name: 'kind' })
+    get kind(): string {
+        return this.key.kind;
+    }
+    set kind(kind: string) {
+        if (!this.key) {
+            this.path = [];
+        }
+        this.key.kind = kind;
+    }
 
-    @Persist()
-    name?: string;
+    @PersistStruct(() => Number, { name: 'id' })
+    get id(): number | undefined {
+        if (this.key.id) {
+            return parseInt(this.key.id);
+        }
+        return undefined;
+    }
+    set id(id: number | undefined) {
+        if (!this.key) {
+            this.path = [];
+        }
+        this.key.id = id ? id.toString() : undefined;
+    }
 
-    @Persist()
-    namespace?: string;
+    @Persist({ name: 'name' })
+    get name(): string | undefined {
+        return this.key.name;
+    }
+    set name(name: string | undefined) {
+        if (!this.key) {
+            this.path = [];
+        }
+        this.key.name = name;
+    }
+
+    @Persist({ name: 'namespace' })
+    get namespace(): string | undefined {
+        return this.key.namespace;
+    }
+    set namespace(namespace: string | undefined) {
+        if (!this.key) {
+            this.path = [];
+        }
+        this.key.namespace = namespace;
+    }
 
     @PersistStruct(() => Key)
-    parent?: Key;
+    get parent(): Key | undefined {
+        if (this.key.parent) {
+            return Key.fromDatastore(this.key.parent);
+        }
+        return undefined;
+    }
+    set parent(key: Key | undefined) {
+        if (!this.key) {
+            this.path = [];
+        }
+        this.key.parent = key ? key.toDatastore() : undefined;
+    }
 
     @Persist({ name: 'path' })
-    path = (): Array<string | number> => {
-        let path: Array<string | number> = [];
-        if (this.parent) {
-            path = this.parent.path();
-        }
-        if (this.id) {
-            path = path.concat([this.kind, this.id]);
-        } else if (this.name) {
-            path = path.concat([this.kind, this.name]);
-        } else {
-            path = path.concat([this.kind]);
-        }
-        return path;
-    };
+    get path(): Array<string | number> {
+        return this.key.path;
+    }
+    set path(path: Array<string | number>) {
+        this.key = new datastore.Key({ namespace: this.namespace, path: path });
+    }
 
     /**
      * Create a new entity according to the provided params
@@ -80,11 +120,14 @@ export class Key {
      * @param parent Entity parent
      */
     constructor(kind: string, id?: number, name?: string, namespace?: string, parent?: Key) {
-        this.kind = kind;
-        this.id = id;
-        this.name = name;
-        this.namespace = namespace;
-        this.parent = parent;
+        const path = parent ? parent.path : [];
+        path.push(kind);
+        if (id) {
+            path.push(id);
+        } else if (name) {
+            path.push(name);
+        }
+        this.key = new datastore.Key({ namespace, path });
     }
 
     /**
@@ -160,10 +203,7 @@ export class Key {
      * such as save.
      */
     toDatastore = (): datastore.Key => {
-        return new datastore.Key({
-            namespace: this.namespace,
-            path: this.path(),
-        });
+        return this.key;
     };
 
     /**

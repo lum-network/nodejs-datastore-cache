@@ -73,6 +73,29 @@ describe('DataClient features', () => {
             expect(e5Key.id).toBeUndefined();
         });
 
+        it('should init keys if incomplete when saving within a transaction', async () => {
+            const e1Key = Key.incompleteKey('MyEntity1');
+            const e2Key = Key.incompleteKey('MyEntity2');
+            const e3Key = Key.incompleteKey('MyEntity3');
+            const e4Key = Key.idKey('MyEntity4', Math.floor(Math.random() * 1000000));
+            const e4Id = e4Key.id;
+            const e5Key = Key.nameKey('MyEntity5', Math.floor(Math.random() * 1000000).toString());
+            const e5Name = e5Key.name;
+
+            await clt.runInTransaction(async (txClt: DataClient) => {
+                await txClt.save(new MyEntity({ key: e1Key }));
+                await txClt.save(new MyEntity({ key: e2Key }));
+                await txClt.save(new MyEntity({ key: e5Key }));
+                await txClt.saveMulti([new MyEntity({ key: e5Key }), new MyEntity({ key: e3Key }), new MyEntity({ key: e4Key })]);
+            });
+            expect(e1Key.id).toBeGreaterThan(0);
+            expect(e2Key.id).toBeGreaterThan(0);
+            expect(e3Key.id).toBeGreaterThan(0);
+            expect(e4Key.id).toEqual(e4Id);
+            expect(e5Key.name).toEqual(e5Name);
+            expect(e5Key.id).toBeUndefined();
+        });
+
         it('should be able to single get, set and delete', async () => {
             // Entity definition
             const e1Key = Key.incompleteKey('MyEntity');
@@ -88,24 +111,24 @@ describe('DataClient features', () => {
 
             // Entity should be persisted in datastore
             let e1Stored = await clt.get(e1Key, MyEntity);
-            expect(JSON.stringify(e1Stored)).toEqual(JSON.stringify(e1));
+            expect(await e1Stored.toPlain(clt.datastoreClient)).toEqual(await e1.toPlain(clt.datastoreClient));
 
             // Entity should be persisted in cache
             let e1Str = await clt.cacheClient.get(await clt.cacheKeyFromDatastoreKey(e1Key));
             expect(e1Str).not.toBe(null);
             let e1Cached = MyEntity.fromPlain(JSON.parse(e1Str as string), MyEntity);
-            expect(JSON.stringify(e1Cached)).toEqual(JSON.stringify(e1));
+            expect(await e1Cached.toPlain(clt.datastoreClient)).toEqual(await e1.toPlain(clt.datastoreClient));
 
             // Cache should be set upon each get
             await clt.cacheClient.del(await clt.cacheKeyFromDatastoreKey(e1Key));
             e1Str = await clt.cacheClient.get(await clt.cacheKeyFromDatastoreKey(e1Key));
             expect(e1Str).toBe(null);
             e1Stored = await clt.get(e1Key, MyEntity);
-            expect(JSON.stringify(e1Stored)).toEqual(JSON.stringify(e1));
+            expect(await e1Stored.toPlain(clt.datastoreClient)).toEqual(await e1.toPlain(clt.datastoreClient));
             e1Str = await clt.cacheClient.get(await clt.cacheKeyFromDatastoreKey(e1Key));
             expect(e1Str).not.toBe(null);
             e1Cached = MyEntity.fromPlain(JSON.parse(e1Str as string), MyEntity);
-            expect(JSON.stringify(e1Cached)).toEqual(JSON.stringify(e1));
+            expect(await e1Cached.toPlain(clt.datastoreClient)).toEqual(await e1.toPlain(clt.datastoreClient));
 
             // Entity updates should be persisted
             const e1DsKey = e1.key?.toDatastore();
@@ -119,7 +142,7 @@ describe('DataClient features', () => {
 
             // Getting the entity should return the updated result
             e1Stored = await clt.get(e1Key, MyEntity);
-            expect(JSON.stringify(e1Stored)).toEqual(JSON.stringify(e1));
+            expect(await e1Stored.toPlain(clt.datastoreClient)).toEqual(await e1.toPlain(clt.datastoreClient));
 
             // Deleting the entity should be persisted
             await clt.delete(e1Key);
@@ -156,22 +179,22 @@ describe('DataClient features', () => {
             let entities = await clt.getMulti(keys, MyEntity);
             expect(entities.length).toEqual(7);
             expect(entities[0]).toBeNull();
-            expect(JSON.stringify(entities[1])).toEqual(JSON.stringify(e1));
+            expect(JSON.stringify(await entities[1].toPlain(clt.datastoreClient))).toEqual(JSON.stringify(await e1.toPlain(clt.datastoreClient)));
             expect(entities[2]).toBeNull();
-            expect(JSON.stringify(entities[3])).toEqual(JSON.stringify(e2));
+            expect(JSON.stringify(await entities[3].toPlain(clt.datastoreClient))).toEqual(JSON.stringify(await e2.toPlain(clt.datastoreClient)));
             expect(entities[4]).toBeNull();
-            expect(JSON.stringify(entities[5])).toEqual(JSON.stringify(e3));
+            expect(JSON.stringify(await entities[5].toPlain(clt.datastoreClient))).toEqual(JSON.stringify(await e3.toPlain(clt.datastoreClient)));
             expect(entities[6]).toBeNull();
 
             // Entities should be available from cache
             let cached = await clt.cacheClient.mget(await clt.cacheKeysFromDatastoreKeys(keys));
             expect(cached.length).toEqual(7);
             expect(cached[0]).toBeNull();
-            expect(JSON.stringify(MyEntity.fromPlain(JSON.parse(cached[1] as string), MyEntity))).toEqual(JSON.stringify(e1));
+            expect(JSON.parse(cached[1] as string)).toEqual(await e1.toPlain(clt.datastoreClient));
             expect(cached[2]).toBeNull();
-            expect(JSON.stringify(MyEntity.fromPlain(JSON.parse(cached[3] as string), MyEntity))).toEqual(JSON.stringify(e2));
+            expect(JSON.parse(cached[3] as string)).toEqual(await e2.toPlain(clt.datastoreClient));
             expect(cached[4]).toBeNull();
-            expect(JSON.stringify(MyEntity.fromPlain(JSON.parse(cached[5] as string), MyEntity))).toEqual(JSON.stringify(e3));
+            expect(JSON.parse(cached[5] as string)).toEqual(await e3.toPlain(clt.datastoreClient));
             expect(cached[6]).toBeNull();
 
             // Delete entities should remove them from datastore and cache
