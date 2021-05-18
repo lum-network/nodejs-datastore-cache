@@ -37,8 +37,10 @@
         "@types/redis": "^2.8.28",
         "class-transformer": "^0.3.2",
         "node-redis": "^0.1.7",
-        "redis": "^3.0.2",
-        "reflect-metadata": "^0.1.13"
+        "redis": "^3.1.1",
+        "reflect-metadata": "^0.1.13",
+        "handlebars": "^4.7.7",
+        "lodash": "^4.17.21"
     },
     "optionalDependencies": {},
     "devDependencies": {
