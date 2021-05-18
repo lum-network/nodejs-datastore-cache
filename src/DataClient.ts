@@ -87,6 +87,18 @@ export class DataClient {
     };
 
     /**
+     * Allocate new unique Key using datastore auto-generated numeric IDs.
+     *
+     * @param kind Kind for each keys
+     * @param nbr Number of keys to allocate
+     * @returns The newly allocated keys
+     */
+    allocateIds = async (kind: string, nbr: number): Promise<Key[]> => {
+        const [keys] = await this.datastoreClient.allocateIds(Key.incompleteKey(kind).toDatastore(), nbr);
+        return keys.map((k) => Key.fromDatastore(k));
+    };
+
+    /**
      * Get an entity by key
      * Set the cache data associated with the entity
      *

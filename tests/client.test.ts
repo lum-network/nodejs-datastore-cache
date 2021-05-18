@@ -32,6 +32,18 @@ describe('DataClient features', () => {
             await expect(clt.close()).resolves.toEqual(undefined);
         });
 
+        it('should allocate unique keys', async () => {
+            const keys1 = await clt.allocateIds('MyEntity', 50);
+            const keys2 = await clt.allocateIds('MyEntity', 100);
+            const keys3 = await clt.allocateIds('MyEntity', 150);
+            const allKeys = keys1.concat(keys2).concat(keys3);
+            for (let k = 0; k < allKeys.length; k++) {
+                const key = allKeys[k];
+                expect(key.id).toBeGreaterThan(0);
+                expect(allKeys.filter((v) => v.id === key.id)).toHaveLength(1);
+            }
+        });
+
         it('should init keys if incomplete when saving', async () => {
             const e1Key = Key.incompleteKey('MyEntity');
             const e2Key = Key.incompleteKey('MyEntity');

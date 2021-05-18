@@ -33,6 +33,7 @@ const cltRedisCache = new DataClient({}, new RedisCacheClient());
 ### Methods
 
 - [\_req](dataclient.md#_req)
+- [allocateIds](dataclient.md#allocateids)
 - [cacheKeyFromDatastoreKey](dataclient.md#cachekeyfromdatastorekey)
 - [cacheKeysFromDatastoreKeys](dataclient.md#cachekeysfromdatastorekeys)
 - [close](dataclient.md#close)
@@ -93,6 +94,25 @@ ___
 Get the current request provider, either the ongoing transaction or the datastore client
 
 **Returns:** *DatastoreRequest*
+
+___
+
+### allocateIds
+
+▸ **allocateIds**(`kind`: *string*, `nbr`: *number*): *Promise*<[*Key*](key.md)[]\>
+
+Allocate new unique Key using datastore auto-generated numeric IDs.
+
+#### Parameters:
+
+Name | Type | Description |
+------ | ------ | ------ |
+`kind` | *string* | Kind for each keys   |
+`nbr` | *number* | Number of keys to allocate   |
+
+**Returns:** *Promise*<[*Key*](key.md)[]\>
+
+The newly allocated keys
 
 ___
 
