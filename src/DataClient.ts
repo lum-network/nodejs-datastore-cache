@@ -94,7 +94,7 @@ export class DataClient {
      * @returns The newly allocated keys
      */
     allocateIds = async (kind: string, nbr: number): Promise<Key[]> => {
-        const [keys] = await this.datastoreClient.allocateIds(Key.incompleteKey(kind).toDatastore(), nbr);
+        const [keys] = await this._req().allocateIds(Key.incompleteKey(kind).toDatastore(), nbr);
         return keys.map((k) => Key.fromDatastore(k));
     };
 

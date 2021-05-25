@@ -1,4 +1,4 @@
-import { DataClient, Entity, Key, Persist, RedisCacheClient } from '../src';
+import { DataClient, Entity, Key, Persist, PersistStruct, RedisCacheClient } from '../src';
 
 class MyEntity extends Entity {
     @Persist()
@@ -294,6 +294,89 @@ describe('DataClient features', () => {
             expect(entities.length).toEqual(2);
             expect(more).toBeFalsy();
             expect(JSON.stringify(entities)).toEqual(JSON.stringify(originalEntities.slice(6, 8)));
+        });
+
+        it('should allow noindex properties', async () => {
+            const tooLongToIndexStr = Buffer.alloc(1501, '.').toString();
+
+            class MyNoIndexStruct extends Entity {
+                @Persist({ noindex: true })
+                text?: string;
+
+                @Persist({ noindex: true })
+                arr?: string[];
+
+                constructor(props?: Partial<MyNoIndexStruct>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            class MyNoIndexEntity extends Entity {
+                @PersistStruct(() => MyNoIndexStruct)
+                inner?: MyNoIndexStruct;
+
+                @PersistStruct(() => MyNoIndexStruct)
+                inners?: MyNoIndexStruct[];
+
+                @Persist({ noindex: true })
+                text?: string;
+
+                @Persist({ noindex: true })
+                arr?: string[];
+
+                constructor(props?: Partial<MyNoIndexEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            // Save an entity with plenty of props noindex initialized
+            let e = new MyNoIndexEntity({
+                key: Key.incompleteKey('MyNoIndexEntity'),
+                inner: new MyNoIndexStruct({
+                    text: tooLongToIndexStr,
+                    arr: [tooLongToIndexStr, tooLongToIndexStr],
+                }),
+                inners: [
+                    new MyNoIndexStruct({
+                        text: tooLongToIndexStr,
+                        arr: [tooLongToIndexStr, tooLongToIndexStr],
+                    }),
+                ],
+                text: tooLongToIndexStr,
+                arr: [tooLongToIndexStr, tooLongToIndexStr],
+            });
+
+            await clt.save(e);
+            expect(e.key.id).toBeGreaterThan(0);
+            e.key = Key.incompleteKey('MyNoIndexEntity');
+            await clt.runInTransaction(async (txClt) => {
+                await txClt.save(e);
+            });
+            expect(e.key.id).toBeGreaterThan(0);
+
+            // Save an entity with many missing props which should not cause any issue
+            e = new MyNoIndexEntity({
+                key: Key.incompleteKey('MyNoIndexEntity'),
+                inner: new MyNoIndexStruct({
+                    arr: [tooLongToIndexStr, tooLongToIndexStr],
+                }),
+                inners: [
+                    new MyNoIndexStruct({
+                        text: tooLongToIndexStr,
+                    }),
+                ],
+                text: tooLongToIndexStr,
+            });
+
+            await clt.save(e);
+            expect(e.key.id).toBeGreaterThan(0);
+            e.key = Key.incompleteKey('MyNoIndexEntity');
+            await clt.runInTransaction(async (txClt) => {
+                await txClt.save(e);
+            });
+            expect(e.key.id).toBeGreaterThan(0);
         });
     });
 });

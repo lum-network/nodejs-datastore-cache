@@ -3,6 +3,7 @@ import { entity as datastore_entity } from '@google-cloud/datastore/build/src/en
 import { ClassConstructor, ClassTransformOptions, plainToClass } from 'class-transformer';
 
 import { Key, PersistKey } from '.';
+import { getAttributes } from './metadata';
 import { getKeyValue, propToPlain, propToDatastore } from './utils';
 
 const cto: ClassTransformOptions = { strategy: 'excludeAll' };
@@ -13,6 +14,7 @@ const cto: ClassTransformOptions = { strategy: 'excludeAll' };
 export type DatastoreEntity = {
     key: datastore_entity.Key;
     data: { [Key: string]: unknown };
+    excludeFromIndexes?: string[];
 };
 
 /**
@@ -87,6 +89,50 @@ export abstract class Entity {
     };
 
     /**
+     * Gets the indexes exclusions from the decorators metadata
+     * Such as @Persist({ noindex: true })
+     *
+     * Notes:
+     * - This basically output something like ['text', 'arr[]', 'inner.text', 'inner.arr[]'] depending on the props
+     * - The output is not deterministic and will depend on the current instance. This is not an issue but good to know I guess.
+     *
+     * @returns
+     */
+    getIndexesExclusions = (): string[] => {
+        const exclusions: string[] = [];
+
+        // Compute direct properties
+        const attrs: { [key: string]: any } = getAttributes(this) || {};
+        for (const prop in attrs) {
+            if (attrs[prop] && attrs[prop].noindex === true) {
+                if (getKeyValue(this, prop as keyof this) instanceof Array) {
+                    exclusions.push(`${prop}[]`);
+                } else {
+                    exclusions.push(prop);
+                }
+            }
+        }
+
+        // Compute nested properties
+        const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
+        for (const i in props) {
+            const p = props[i];
+            const v = getKeyValue(this, p);
+            let nestedExclusions: string[] = [];
+            let prefix = `${p}`;
+            if (v instanceof Entity) {
+                nestedExclusions = (v as Entity).getIndexesExclusions();
+            } else if (v instanceof Array && v.length > 0 && v[0] instanceof Entity) {
+                nestedExclusions = (v[0] as Entity).getIndexesExclusions();
+                prefix = `${p}[]`;
+            }
+            exclusions.push(...nestedExclusions.map((e) => `${prefix}.${e}`));
+        }
+
+        return exclusions;
+    };
+
+    /**
      * Converts entity properties into datastore properties
      * This method should rarely be used by outside code.
      */
@@ -97,6 +143,7 @@ export abstract class Entity {
         return {
             key: this.key && this.key.toDatastore(),
             data: this.toDatastoreObject(false),
+            excludeFromIndexes: this.getIndexesExclusions(),
         };
     };
 
