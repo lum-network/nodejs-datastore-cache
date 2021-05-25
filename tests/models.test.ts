@@ -110,6 +110,7 @@ describe('DataModels', () => {
                     'number': 5678,
                     'child_key': new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
                 },
+                'excludeFromIndexes': [],
             });
 
             // Verify entity cannot be restored until saved into datastore
@@ -248,6 +249,7 @@ describe('DataModels', () => {
                         },
                     ],
                 },
+                'excludeFromIndexes': [],
             });
 
             // Verify entity cannot be restored until saved into datastore
