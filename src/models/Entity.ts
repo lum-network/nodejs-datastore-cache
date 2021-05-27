@@ -138,7 +138,7 @@ export abstract class Entity {
      */
     toDatastore = (): DatastoreEntity => {
         if (!this.key) {
-            throw new Error('entity withou key cannot be saved into datastore');
+            throw new Error('entity without key cannot be saved into datastore');
         }
         return {
             key: this.key && this.key.toDatastore(),
