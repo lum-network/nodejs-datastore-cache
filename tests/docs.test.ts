@@ -1,8 +1,10 @@
+import { Exclude } from 'class-transformer';
 import { Key, Entity, Persist, PersistKey, PersistStruct, DataClient } from '../src';
 
 describe('Docs example', () => {
     it('should work and provide a basic integration example', async () => {
         // MyInnerEntity model
+        @Exclude()
         class MyInnerEntity extends Entity {
             @Persist()
             my_inner_number?: number;
@@ -14,6 +16,7 @@ describe('Docs example', () => {
         }
 
         // MyEntity model
+        @Exclude()
         class MyEntity extends Entity {
             @PersistKey()
             my_persisted_foreign_key?: Key;

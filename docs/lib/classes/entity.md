@@ -24,6 +24,7 @@ Important notes:
 
 ### Methods
 
+- [getIndexesExclusions](entity.md#getindexesexclusions)
 - [toDatastore](entity.md#todatastore)
 - [toDatastoreObject](entity.md#todatastoreobject)
 - [toPlain](entity.md#toplain)
@@ -53,6 +54,21 @@ Name | Type | Description |
 • `Optional` **key**: *undefined* \| [*Key*](key.md)
 
 ## Methods
+
+### getIndexesExclusions
+
+▸ **getIndexesExclusions**(): *string*[]
+
+Gets the indexes exclusions from the decorators metadata
+Such as @Persist({ noindex: true })
+
+Notes:
+- This basically output something like ['text', 'arr[]', 'inner.text', 'inner.arr[]'] depending on the props
+- The output is not deterministic and will depend on the current instance. This is not an issue but good to know I guess.
+
+**Returns:** *string*[]
+
+___
 
 ### toDatastore
 

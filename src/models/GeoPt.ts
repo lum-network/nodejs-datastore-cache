@@ -1,5 +1,5 @@
 import { entity as datastore_entity } from '@google-cloud/datastore/build/src/entity';
-import { Expose } from 'class-transformer';
+import { Exclude, Expose } from 'class-transformer';
 
 /**
  * Wrapper class to build datastore Geo Points based on latitude and longitude parameters
@@ -9,6 +9,7 @@ import { Expose } from 'class-transformer';
  * const pt = new GeoPt(42.0, 2.0);
  * ```
  */
+@Exclude()
 export class GeoPt {
     @Expose()
     latitude: number;

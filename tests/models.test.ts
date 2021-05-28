@@ -1,6 +1,7 @@
 import * as datastore from '@google-cloud/datastore';
+import { classToClass, classToPlain, Exclude, plainToClass } from 'class-transformer';
 
-import { DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
+import { DataUtils, DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 
 describe('DataModels', () => {
     describe('Key features', () => {
@@ -78,6 +79,7 @@ describe('DataModels', () => {
         });
 
         it('should serialize and deserialize simple entities consistently', async () => {
+            @Exclude()
             class MyEntity extends Entity {
                 @Persist()
                 text?: string;
@@ -124,7 +126,7 @@ describe('DataModels', () => {
             // Verify entity from datastore can be restored into model
             const [e1RawDs] = await clt.datastoreClient.get(e1ToDs.key);
             const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity);
-            expect(JSON.stringify(e1FromDs)).toEqual(JSON.stringify(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDs)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
 
             // Verify entity is ready to be saved into cache as JSON
             const e1ToPlain = await e1.toPlain(clt.datastoreClient);
@@ -139,9 +141,15 @@ describe('DataModels', () => {
             // Verity entity from plain matches the original entity
             const e1FromPlain = MyEntity.fromPlain(e1ToPlain, MyEntity);
             expect(JSON.stringify(e1FromPlain)).toEqual(JSON.stringify(e1));
+
+            // Class transformer direct use shoul also output consisten results
+            const e1FromDirectPlain = plainToClass(MyEntity, classToPlain(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();
         });
 
         it('should serialize and deserialize complex entities consistently', async () => {
+            @Exclude()
             class MyInnerEntity extends Entity {
                 @Persist()
                 info_text?: string;
@@ -161,6 +169,7 @@ describe('DataModels', () => {
                 }
             }
 
+            @Exclude()
             class MyEntity extends Entity {
                 @Persist()
                 text?: string;
@@ -263,7 +272,7 @@ describe('DataModels', () => {
             // Verify entity from datastore can be restored into model
             const [e1RawDs] = await clt.datastoreClient.get(e1ToDs.key);
             const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity);
-            expect(JSON.stringify(e1FromDs)).toEqual(JSON.stringify(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDs)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
 
             // Verify entity is ready to be saved into cache as JSON
             const e1ToPlain = await e1.toPlain(clt.datastoreClient);
@@ -298,7 +307,12 @@ describe('DataModels', () => {
 
             // Verity entity from plain matches the original entity
             const e1FromPlain = MyEntity.fromPlain(e1ToPlain, MyEntity);
-            expect(JSON.stringify(e1FromPlain)).toEqual(JSON.stringify(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+
+            // Class transformer direct use shoul also output consisten results
+            const e1FromDirectPlain = plainToClass(MyEntity, classToPlain(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();
         });
     });
 });

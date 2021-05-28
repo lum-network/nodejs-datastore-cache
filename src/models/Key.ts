@@ -1,10 +1,8 @@
 import * as datastore from '@google-cloud/datastore';
 import { entity } from '@google-cloud/datastore/build/src/entity';
 
-import { Type, Expose, ClassTransformOptions, classToPlain, plainToClass, ExposeOptions, Transform } from 'class-transformer';
+import { Type, Expose, classToPlain, plainToClass, ExposeOptions, Transform, Exclude } from 'class-transformer';
 import { Persist, PersistStruct } from './decorators';
-
-const cto: ClassTransformOptions = { strategy: 'excludeAll' };
 
 const urlSafeKeyHelper = new entity.URLSafeKey();
 
@@ -38,6 +36,7 @@ export const PersistKey = (options: ExposeOptions = {}): PropertyDecorator => {
  * )
  * ```
  */
+@Exclude()
 export class Key {
     key: datastore.Key;
 
@@ -195,7 +194,7 @@ export class Key {
         if (typeof plain === 'string') {
             return Key.decode(plain);
         }
-        return plainToClass(Key, plain, cto);
+        return plainToClass(Key, plain);
     };
 
     /**
@@ -216,7 +215,10 @@ export class Key {
      */
     encode = async (store: datastore.Datastore, locationPrefix?: string): Promise<string> => {
         return new Promise((resolve, reject) => {
-            if (locationPrefix) {
+            if (!store) {
+                // Fix an issue with class transformer auto generation behaviour
+                resolve('');
+            } else if (locationPrefix) {
                 store.keyToLegacyUrlSafe(this.toDatastore(), locationPrefix, (err, d) => {
                     if (err || !d) {
                         reject(err);
@@ -240,6 +242,6 @@ export class Key {
      * Converts the Key instance into a plain object
      */
     toPlain = (): { [key: string]: any } => {
-        return classToPlain(this, cto);
+        return classToPlain(this);
     };
 }

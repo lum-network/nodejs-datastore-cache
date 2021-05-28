@@ -2,6 +2,10 @@
 
 ## Table of contents
 
+### Namespaces
+
+- [DataUtils](modules/datautils.md)
+
 ### Classes
 
 - [DataClient](classes/dataclient.md)
@@ -21,7 +25,7 @@
 
 ### Persist
 
-▸ `Const`**Persist**(`options?`: ExposeOptions): PropertyDecorator
+▸ `Const`**Persist**(`options?`: ExposeOptions & DatastoreOptions): PropertyDecorator
 
 Decorator to declare a field must be saved into the datastore upon save calls.
 
@@ -29,7 +33,7 @@ Decorator to declare a field must be saved into the datastore upon save calls.
 
 Name | Type | Default value | Description |
 ------ | ------ | ------ | ------ |
-`options` | ExposeOptions | ... |     |
+`options` | ExposeOptions & DatastoreOptions | ... |     |
 
 **Returns:** PropertyDecorator
 
@@ -54,7 +58,7 @@ ___
 
 ### PersistStruct
 
-▸ `Const`**PersistStruct**(`typeFunction?`: (`type?`: TypeHelpOptions) => Function, `options?`: ExposeOptions): PropertyDecorator
+▸ `Const`**PersistStruct**(`typeFunction?`: (`type?`: TypeHelpOptions) => Function, `options?`: ExposeOptions & DatastoreOptions): PropertyDecorator
 
 Decorator to declare a field must be saved into the datastore upon save calls.
 The type function is necessary to properly recover the underlying data type upon deserialization.
@@ -64,6 +68,6 @@ The type function is necessary to properly recover the underlying data type upon
 Name | Type | Default value | Description |
 ------ | ------ | ------ | ------ |
 `typeFunction?` | (`type?`: TypeHelpOptions) => Function | - |  |
-`options` | ExposeOptions | ... |     |
+`options` | ExposeOptions & DatastoreOptions | ... |     |
 
 **Returns:** PropertyDecorator
