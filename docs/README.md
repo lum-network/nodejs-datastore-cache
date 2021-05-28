@@ -182,6 +182,21 @@ const persistedUpdated = await clt.get(key, MyEntity);
 await clt.delete(key);
 ```
 
+### Entity Hooks
+
+#### Before save hook
+
+This hook will get called everytime the entity is saved into the datastore.
+
+```typescript
+@Exclude()
+class MyEntity extends Entity {
+    _beforeSaveHook = async () => {
+        // Do some fancy computation on properties here
+    };
+}
+```
+
 ### Queries
 
 #### Keys only queries (recommended)

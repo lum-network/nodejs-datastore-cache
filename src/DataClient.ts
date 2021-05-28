@@ -137,6 +137,9 @@ export class DataClient {
         if (!entity.key) {
             throw new Error('cannot save entity without key');
         }
+        if (entity._beforeSaveHook) {
+            await entity._beforeSaveHook();
+        }
         const datastoreEntity = entity.toDatastore();
         await this._req().save(datastoreEntity);
         if (entity.key.id === undefined && datastoreEntity.key.id !== undefined) {
@@ -214,7 +217,14 @@ export class DataClient {
      * @param entities the entities to save
      */
     saveMulti = async (entities: Entity[]): Promise<void> => {
-        const datastoreEntities = entities.map((e) => e.toDatastore());
+        const datastoreEntities = await Promise.all(
+            entities.map(async (e) => {
+                if (e._beforeSaveHook) {
+                    await e._beforeSaveHook();
+                }
+                return e.toDatastore();
+            }),
+        );
         await this._req().save(datastoreEntities);
         for (let i = 0; i < entities.length; i++) {
             const e = entities[i];
