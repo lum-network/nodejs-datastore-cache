@@ -10,6 +10,80 @@ This library basically provides a clean wrapper around the @google-cloud/datasto
 
 Therefore, using the @google-cloud/datastore directly, in parallel to this library, is highly discouraged as it can lead to undesired behaviours.
 
+## Important nodes
+
+### Serializing entities & keys
+
+The serialization is made using the [class-transformer](https://github.com/typestack/class-transformer) library.
+
+Due to the google datastore library implementation, serializing using the generic `classToPlain` and `Entity.toPlain` method does not output the same result (for more information you can look into the `Key.encode` method and see that it requires a datastore instance which is not possible to provide using `classToPlain`).
+
+This is actually not much of an issue but something developers need to be aware of, as it can lead to unpredictable behaviour if not handled properly. Both serializations are compatible when de-serializing anyway.
+
+The example below outline this difference. In most use cases you will not run in this situation but if at some point you want to serialize your entity and you cannot use the `toPlain` method or simply do not have access to a datastore client instance you will have this difference in serialization.
+
+```typescript
+@Exclude()
+class MyEntity extends Entity {
+    @Persist()
+    text?: string;
+
+    @PersistKey()
+    child_key?: Key;
+
+    constructor(props?: Partial<MyEntity>) {
+        super(props && props.key);
+        Object.assign(this, props);
+    }
+}
+
+const e = new MyEntity({ key: Key.nameKey('MyEntity', 'parent-id'), text: 'hello', child_key: Key.nameKey('ChildKind', 'child-id') });
+
+const toPlain = e.toPlain(clt.datastoreClient));
+console.log(toPlain);
+// Will output
+// {
+//     key: 'agNkZXZyFwsSCE15RW50aXR5IglwYXJlbnQtaWQM',
+//     text: 'hello',
+//     child_key: 'agNkZXZyFwsSCUNoaWxkS2luZCIIY2hpbGQtaWQM'
+// }
+
+const nativePlain = classToPlain(e);
+console.log(nativePlain);
+// Will output
+// {
+//     key: {
+//         kind: 'MyEntity',
+//         id: undefined,
+//         name: 'parent-id',
+//         namespace: undefined,
+//         parent: undefined,
+//         path: [ 'MyEntity', 'parent-id' ]
+//     },
+//     text: 'hello',
+//     child_key: {
+//         kind: 'ChildKind',
+//         id: undefined,
+//         name: 'child-id',
+//         namespace: undefined,
+//         parent: undefined,
+//         path: [ 'ChildKind', 'child-id' ]
+//     }
+// }
+
+const deserialized = [
+    plainToClass(MyEntity, toPlain),
+    plainToClass(MyEntity, nativePlain),
+    Entity.fromPlain(toPlain, MyEntity),
+    Entity.fromPlain(nativePlain, MyEntity),
+];
+
+console.log(deserialized);
+// all deserialized values are "equal"
+```
+
+The `Entity.toPlain` method is used internally to serialize entities and save them into the cache layer. This way serialized entities should be compatible with other serialization provided by GCloud libraries in other languages (Python or Golang for example).
+
 ## Examples
 
 A couple examples to help you get started.
@@ -36,8 +110,12 @@ Each persisted property must either use one of the following decorators:
 -   @PersistStruct: For nested entities / class such as GeoPt
 -   @Persist: For native types
 
+Failing to enforce a global @Exclude() for each an Entity will not trigger any particular issue until you try to serialize the Entity using `classToPlain` directly.
+So better do it all the time just to be sure.
+
 ```typescript
 // MyInnerEntity model
+@Exclude()
 class MyInnerEntity extends Entity {
     @Persist()
     my_inner_number?: number;
@@ -49,6 +127,7 @@ class MyInnerEntity extends Entity {
 }
 
 // MyEntity model
+@Exclude()
 class MyEntity extends Entity {
     @PersistKey()
     my_persisted_foreign_key?: Key;

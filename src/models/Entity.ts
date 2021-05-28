@@ -1,12 +1,10 @@
 import * as datastore from '@google-cloud/datastore';
 import { entity as datastore_entity } from '@google-cloud/datastore/build/src/entity';
-import { ClassConstructor, ClassTransformOptions, plainToClass } from 'class-transformer';
+import { ClassConstructor, Exclude, plainToClass } from 'class-transformer';
 
 import { Key, PersistKey } from '.';
 import { getAttributes } from './metadata';
 import { getKeyValue, propToPlain, propToDatastore } from './utils';
-
-const cto: ClassTransformOptions = { strategy: 'excludeAll' };
 
 /**
  * DatastoreEntity as used by the datastore client for calls such as save
@@ -27,6 +25,7 @@ export type DatastoreEntity = {
  * - A property starting with an underscore `_` will be considered private and will not be persisted
  *
  */
+@Exclude()
 export abstract class Entity {
     @PersistKey()
     key?: Key;
@@ -50,7 +49,7 @@ export abstract class Entity {
     static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>): T => {
         if (dsEntity[datastore_entity.KEY_SYMBOL]) {
             // Deserializing from datastore response
-            const entity: T = plainToClass(cls, dsEntity, cto);
+            const entity: T = plainToClass(cls, dsEntity);
             entity.key = Key.fromDatastore(dsEntity[datastore_entity.KEY_SYMBOL]);
             return entity;
         }
@@ -65,7 +64,7 @@ export abstract class Entity {
      * @param cls the class to convert the plain object into
      */
     static fromPlain = <T extends Entity>(plainEntity: object, cls: ClassConstructor<T>): T => {
-        return plainToClass(cls, plainEntity, cto);
+        return plainToClass(cls, plainEntity);
     };
 
     /**

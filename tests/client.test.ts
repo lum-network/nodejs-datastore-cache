@@ -1,5 +1,7 @@
+import { Exclude } from 'class-transformer';
 import { DataClient, Entity, Key, Persist, PersistStruct, RedisCacheClient } from '../src';
 
+@Exclude()
 class MyEntity extends Entity {
     @Persist()
     content?: string;
@@ -299,6 +301,7 @@ describe('DataClient features', () => {
         it('should allow noindex properties', async () => {
             const tooLongToIndexStr = Buffer.alloc(1501, '.').toString();
 
+            @Exclude()
             class MyNoIndexStruct extends Entity {
                 @Persist({ noindex: true })
                 text?: string;
@@ -312,6 +315,7 @@ describe('DataClient features', () => {
                 }
             }
 
+            @Exclude()
             class MyNoIndexEntity extends Entity {
                 @PersistStruct(() => MyNoIndexStruct)
                 inner?: MyNoIndexStruct;
