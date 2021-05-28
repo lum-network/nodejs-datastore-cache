@@ -314,5 +314,37 @@ describe('DataModels', () => {
             expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
             await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();
         });
+
+        it('should call entity hooks', async () => {
+            @Exclude()
+            class MyComputedEntity extends Entity {
+                @Persist()
+                x?: number;
+
+                @PersistKey()
+                y?: number;
+
+                _beforeSaveHook = async () => {
+                    this.y = this.x * this.x;
+                };
+
+                constructor(props?: Partial<MyComputedEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            const e = new MyComputedEntity({ key: Key.incompleteKey('MyComputedEntity'), x: 4 });
+            await e._beforeSaveHook();
+            expect(e.y).toEqual(e.x * e.x);
+            e.x = 12;
+            expect(e.y).toEqual(4 * 4);
+            await clt.save(e);
+            expect(e.y).toEqual(e.x * e.x);
+            e.x = 15;
+            expect(e.y).toEqual(12 * 12);
+            await clt.saveMulti([e]);
+            expect(e.y).toEqual(e.x * e.x);
+        });
     });
 });

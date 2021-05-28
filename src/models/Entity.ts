@@ -27,6 +27,8 @@ export type DatastoreEntity = {
  */
 @Exclude()
 export abstract class Entity {
+    _beforeSaveHook?: () => Promise<void>;
+
     @PersistKey()
     key?: Key;
 

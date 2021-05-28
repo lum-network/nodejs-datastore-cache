@@ -20,6 +20,7 @@ Important notes:
 
 ### Properties
 
+- [\_beforeSaveHook](entity.md#_beforesavehook)
 - [key](entity.md#key)
 
 ### Methods
@@ -48,6 +49,12 @@ Name | Type | Description |
 **Returns:** [*Entity*](entity.md)
 
 ## Properties
+
+### \_beforeSaveHook
+
+• `Optional` **\_beforeSaveHook**: *undefined* \| () => *Promise*<*void*\>
+
+___
 
 ### key
 
