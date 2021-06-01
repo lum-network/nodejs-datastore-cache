@@ -106,6 +106,11 @@ export class Key {
         return this.key.path;
     }
     set path(path: Array<string | number>) {
+        if (this.id && path && path.length > 0 && path[path.length - 1] === this.id.toString()) {
+            // Fix id being passed in the path as strings which confuses our setup
+            // this happens when using plainToClass(datastore.Key, Key) if the key is an ID key
+            path[path.length - 1] = this.id;
+        }
         this.key = new datastore.Key({ namespace: this.namespace, path: path });
     }
 

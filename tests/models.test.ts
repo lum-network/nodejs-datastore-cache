@@ -146,6 +146,64 @@ describe('DataModels', () => {
             const e1FromDirectPlain = plainToClass(MyEntity, classToPlain(e1));
             expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
             await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();
+
+            // Entity keys should keep either the id or name properly set between calls to the datastore
+            const e2 = new MyEntity({
+                key: Key.nameKey('MyEntity', '789456123-parent', undefined, Key.nameKey('MyGroupKey', '789456123-gp')),
+                text: 'bonjour',
+                number: 5678,
+                child_key: Key.nameKey('MyChildEntity', '789456123-child', undefined, Key.nameKey('MyGroupKey', '789456123-gp')),
+            });
+            const e3 = new MyEntity({
+                key: Key.idKey('MyEntity', 789456123, undefined, Key.idKey('MyGroupKey', 789456123)),
+                text: 'bonjour',
+                number: 5678,
+                child_key: Key.idKey('MyChildEntity', 789456123, undefined, Key.idKey('MyGroupKey', 789456123)),
+            });
+
+            // Before datastore call
+            expect(e2.key.id).toBeUndefined();
+            expect(e2.key.name).toBeTruthy();
+            expect(e2.child_key.id).toBeUndefined();
+            expect(e2.child_key.name).toBeTruthy();
+            expect(e3.key.id).toBeGreaterThan(0);
+            expect(e3.key.name).toBeUndefined();
+            expect(e3.child_key.id).toBeGreaterThan(0);
+            expect(e3.child_key.name).toBeUndefined();
+
+            // After datastore call
+            await clt.saveMulti([e2, e3]);
+            expect(e2.key.id).toBeUndefined();
+            expect(e2.key.name).toBeTruthy();
+            expect(e2.child_key.id).toBeUndefined();
+            expect(e2.child_key.name).toBeTruthy();
+            expect(e3.key.id).toBeGreaterThan(0);
+            expect(e3.key.name).toBeUndefined();
+            expect(e3.child_key.id).toBeGreaterThan(0);
+            expect(e3.child_key.name).toBeUndefined();
+
+            // Data from datastore get call
+            const e2DsGet = await clt.get(e2.key, MyEntity);
+            const e3DsGet = await clt.get(e3.key, MyEntity);
+            expect(e2DsGet.key.id).toBeUndefined();
+            expect(e2DsGet.key.name).toBeTruthy();
+            expect(e2DsGet.child_key.id).toBeUndefined();
+            expect(e2DsGet.child_key.name).toBeTruthy();
+            expect(e3DsGet.key.id).toBeGreaterThan(0);
+            expect(e3DsGet.key.name).toBeUndefined();
+            expect(e3DsGet.child_key.id).toBeGreaterThan(0);
+            expect(e3DsGet.child_key.name).toBeUndefined();
+
+            // Data from datastore get multi call
+            const eRes = await clt.getMulti([e2.key, e3.key], MyEntity);
+            expect(eRes[0].key.id).toBeUndefined();
+            expect(eRes[0].key.name).toBeTruthy();
+            expect(eRes[0].child_key.id).toBeUndefined();
+            expect(eRes[0].child_key.name).toBeTruthy();
+            expect(eRes[1].key.id).toBeGreaterThan(0);
+            expect(eRes[1].key.name).toBeUndefined();
+            expect(eRes[1].child_key.id).toBeGreaterThan(0);
+            expect(eRes[1].child_key.name).toBeUndefined();
         });
 
         it('should serialize and deserialize complex entities consistently', async () => {
