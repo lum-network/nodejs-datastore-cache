@@ -169,6 +169,9 @@ export class DataClient {
      * @returns An array containing either the fetched entity or null for each requested key
      */
     getMulti = async <T extends Entity>(keys: Key[], cls: ClassConstructor<T>, options?: RunQueryOptions): Promise<Array<T | null>> => {
+        if (keys.length === 0) {
+            return [];
+        }
         const result: { [key: string]: T } = {};
         const cacheKeys = await this.cacheKeysFromDatastoreKeys(keys);
         let cached: ICacheStringArray = [];
@@ -189,7 +192,7 @@ export class DataClient {
         }
 
         // Fetch missing entities from datastore
-        const [dsEntities] = await this._req().get(missingDsKeys, options);
+        const [dsEntities] = missingDsKeys.length > 0 ? await this._req().get(missingDsKeys, options) : [[]];
         for (let i = 0; i < dsEntities.length; i++) {
             const dsEntity = dsEntities[i];
             if (dsEntity) {
@@ -217,6 +220,9 @@ export class DataClient {
      * @param entities the entities to save
      */
     saveMulti = async (entities: Entity[]): Promise<void> => {
+        if (entities.length === 0) {
+            return;
+        }
         const datastoreEntities = await Promise.all(
             entities.map(async (e) => {
                 if (e._beforeSaveHook) {
@@ -243,6 +249,9 @@ export class DataClient {
      * @param key the entity key to delete
      */
     deleteMulti = async (keys: Key[]): Promise<void> => {
+        if (keys.length === 0) {
+            return;
+        }
         await this._req().delete(keys);
         await this.cacheClient.mdel(await this.cacheKeysFromDatastoreKeys(keys));
     };

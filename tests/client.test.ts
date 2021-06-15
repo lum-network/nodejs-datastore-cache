@@ -188,6 +188,15 @@ describe('DataClient features', () => {
             expect(JSON.stringify(await entities[5].toPlain(clt.datastoreClient))).toEqual(JSON.stringify(await e3.toPlain(clt.datastoreClient)));
             expect(entities[6]).toBeNull();
 
+            // Getting empty key array should work
+            entities = await clt.getMulti([], MyEntity);
+            expect(entities.length).toEqual(0);
+            // Setting empty entities array should work
+            await clt.saveMulti([]);
+            // Get multi with one cached entity should work
+            entities = await clt.getMulti([keys[1]], MyEntity);
+            expect(entities.length).toEqual(1);
+
             // Entities should be available from cache
             let cached = await clt.cacheClient.mget(await clt.cacheKeysFromDatastoreKeys(keys));
             expect(cached.length).toEqual(7);
