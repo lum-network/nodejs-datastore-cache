@@ -221,6 +221,10 @@ describe('DataModels', () => {
                 @PersistKey()
                 info_key?: Key;
 
+                myInnerMethod = (): string => {
+                    return `Library should not try to persist me`;
+                };
+
                 constructor(props?: Partial<MyInnerEntity>) {
                     super(props && props.key);
                     Object.assign(this, props);
@@ -249,6 +253,10 @@ describe('DataModels', () => {
 
                 @PersistStruct(() => MyInnerEntity)
                 inners?: MyInnerEntity[];
+
+                myInnerMethod = (): string => {
+                    return `Library should not try to persist me`;
+                };
 
                 constructor(props?: Partial<MyEntity>) {
                     super(props && props.key);
