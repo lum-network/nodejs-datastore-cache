@@ -46,6 +46,7 @@ describe('Docs example', () => {
 
         // Create a data client (you can specify the cache layer to use when creating the client)
         const clt = new DataClient();
+        await clt.connect();
 
         // Persist the entity
         await clt.save(e);

@@ -54,6 +54,50 @@ export const propToPlain = async (elem: unknown, store: datastore.Datastore, key
 };
 
 /**
+ * Create a nested entity from a legacy flatten entity
+ *
+ * Legacy flattened entities structures where stored using dots instead of actual structures.
+ * Example:
+ * - flattened (legacy): { inner.text_value: '1', inner.number_value: 2 }
+ * - nested: { inner: { text_value: '1', number_value: 2 } }
+ * @param dsEntity a datastore entity, either from a previous Entity.toDatastore call or retrieve from a datastore call
+ * @returns the entity with all flatten fields nested
+ */
+export const legacyEntityToNested = (dsEntity: any): any => {
+    const nestedEntity: any = {};
+    let found = false;
+    const props = Object.getOwnPropertyNames(dsEntity) as Array<string>;
+    for (const p of props) {
+        if (p.indexOf('.') >= 0) {
+            found = true;
+            const parts = p.split('.');
+            if (dsEntity[p] instanceof Array) {
+                if (!nestedEntity[parts[0]]) {
+                    nestedEntity[parts[0]] = [];
+                }
+                for (let i = 0; i < dsEntity[p].length; i++) {
+                    if (nestedEntity[parts[0]].length <= i) {
+                        nestedEntity[parts[0]].push({});
+                    }
+                    nestedEntity[parts[0]][i][parts[1]] = dsEntity[p][i];
+                }
+            } else {
+                if (!nestedEntity[parts[0]]) {
+                    nestedEntity[parts[0]] = {};
+                }
+                nestedEntity[parts[0]][parts[1]] = dsEntity[p];
+            }
+        } else {
+            nestedEntity[p] = dsEntity[p];
+        }
+    }
+    if (!found) {
+        return dsEntity;
+    }
+    return nestedEntity;
+};
+
+/**
  * Sorts an object properties recursively.
  *
  * @param jsonObj object to sort

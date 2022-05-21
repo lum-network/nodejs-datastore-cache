@@ -15,23 +15,25 @@ class MyEntity extends Entity {
 describe('DataClient features', () => {
     describe('Without cache layer', () => {
         let clt: DataClient;
-        beforeAll(() => {
+        beforeAll(async () => {
             clt = new DataClient();
+            await clt.connect();
         });
 
         afterAll(async () => {
-            await expect(clt.close()).resolves.toEqual(undefined);
+            await expect(clt.disconnect()).resolves.toEqual(undefined);
         });
     });
 
     describe('With redis cache layer', () => {
         let clt: DataClient;
-        beforeAll(() => {
+        beforeAll(async () => {
             clt = new DataClient({}, new RedisCacheClient());
+            await clt.connect();
         });
 
         afterAll(async () => {
-            await expect(clt.close()).resolves.toEqual(undefined);
+            await expect(clt.disconnect()).resolves.toEqual(undefined);
         });
 
         it('should allocate unique keys', async () => {

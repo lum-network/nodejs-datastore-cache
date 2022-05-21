@@ -140,7 +140,7 @@ Name | Type |
 Name | Type | Description |
 ------ | ------ | ------ |
 `dsEntity` | *any* | a datastore entity, either from a previous Entity.toDatastore call or retrieve from a datastore call   |
-`cls` | *ClassConstructor*<T\> | the class to convert the datastore entity into   |
+`cls` | *ClassConstructor*<T\> | the class to convert the datastore entity into    |
 
 **Returns:** T
 

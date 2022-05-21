@@ -19,8 +19,9 @@ Used to simulate the presence of a cache layer.
 
 ### Methods
 
-- [close](nocacheclient.md#close)
+- [connect](nocacheclient.md#connect)
 - [del](nocacheclient.md#del)
+- [disconnect](nocacheclient.md#disconnect)
 - [events](nocacheclient.md#events)
 - [get](nocacheclient.md#get)
 - [mdel](nocacheclient.md#mdel)
@@ -38,9 +39,9 @@ Used to simulate the presence of a cache layer.
 
 ## Methods
 
-### close
+### connect
 
-▸ **close**(): *Promise*<*void*\>
+▸ **connect**(): *Promise*<*void*\>
 
 Does nothing
 
@@ -51,6 +52,16 @@ ___
 ### del
 
 ▸ **del**(): *Promise*<*void*\>
+
+Does nothing
+
+**Returns:** *Promise*<*void*\>
+
+___
+
+### disconnect
+
+▸ **disconnect**(): *Promise*<*void*\>
 
 Does nothing
 
@@ -116,8 +127,8 @@ ___
 
 ### set
 
-▸ **set**(): *Promise*<*void*\>
+▸ **set**(): *Promise*<*boolean*\>
 
 Does nothing
 
-**Returns:** *Promise*<*void*\>
+**Returns:** *Promise*<*boolean*\>

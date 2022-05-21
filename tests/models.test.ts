@@ -1,17 +1,18 @@
 import * as datastore from '@google-cloud/datastore';
-import { classToClass, classToPlain, Exclude, plainToClass } from 'class-transformer';
+import { instanceToInstance, instanceToPlain, Exclude, plainToInstance } from 'class-transformer';
 
 import { DataUtils, DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 
 describe('DataModels', () => {
     describe('Key features', () => {
         let clt: DataClient;
-        beforeAll(() => {
+        beforeAll(async () => {
             clt = new DataClient();
+            await clt.connect();
         });
 
         afterAll(async () => {
-            await expect(clt.close()).resolves.toEqual(undefined);
+            await expect(clt.disconnect()).resolves.toEqual(undefined);
         });
 
         it('should wrap datastore keys consistently', () => {
@@ -70,18 +71,113 @@ describe('DataModels', () => {
 
     describe('Entity features', () => {
         let clt: DataClient;
-        beforeAll(() => {
+        beforeAll(async () => {
             clt = new DataClient();
+            await clt.connect();
         });
 
         afterAll(async () => {
-            await expect(clt.close()).resolves.toEqual(undefined);
+            await expect(clt.disconnect()).resolves.toEqual(undefined);
+        });
+
+        it('should serialize and deserialize legacy nested structures consistently', async () => {
+            @Exclude()
+            class MyInnerEntity extends Entity {
+                @Persist()
+                info_text?: string;
+
+                @Persist({ noindex: true })
+                info_number?: number;
+
+                constructor(props?: Partial<MyInnerEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            @Exclude()
+            class MyEntity extends Entity {
+                @Persist()
+                info_text?: string;
+
+                @Persist({ noindex: true })
+                info_number?: number;
+
+                @PersistStruct(() => MyInnerEntity)
+                inner?: MyInnerEntity;
+
+                @PersistStruct(() => MyInnerEntity, { noindex: true })
+                inners?: MyInnerEntity[];
+
+                constructor(props?: Partial<MyEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            @Exclude()
+            class MyLegacyEntity extends Entity {
+                @Persist()
+                info_text?: string;
+
+                @Persist({ noindex: true })
+                info_number?: number;
+
+                @Persist({ name: 'inner.info_text' })
+                inner_info_text?: string;
+
+                @Persist({ name: 'inner.info_number' })
+                inner_info_number?: number;
+
+                @Persist({ name: 'inners.info_text' })
+                inners_info_text?: string[];
+
+                @Persist({ name: 'inners.info_number', noindex: true })
+                inners_info_number?: number[];
+
+                constructor(props?: Partial<MyLegacyEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            const recentEntity = new MyEntity({
+                key: Key.nameKey('MyRecentEntity', '1234-1234'),
+                info_text: 'foo',
+                info_number: 1000,
+                inner: new MyInnerEntity({ info_text: 'inner-foo', info_number: 2000 }),
+                inners: [new MyInnerEntity({ info_text: 'inners-foo-1', info_number: 3000 }), new MyInnerEntity({ info_text: 'inners-foo-2', info_number: 4000 })],
+            });
+
+            const legacyEntity = new MyLegacyEntity({
+                key: Key.nameKey('MyLegacyEntity', '1234-1234'),
+                info_text: 'foo',
+                info_number: 1000,
+                inner_info_text: 'inner-foo',
+                inner_info_number: 2000,
+                inners_info_text: ['inners-foo-1', 'inners-foo-2'],
+                inners_info_number: [3000, 4000],
+            });
+
+            // Save recent and legacy entities into datastore
+            await clt.save(recentEntity);
+            await clt.save(legacyEntity);
+
+            // Fetch recent and legacy entities from datastore using the new model
+            // legacy props should be injected properly into the new model
+            const recentFromDs = await clt.get(recentEntity.key, MyEntity);
+            const legacyFromDs = await clt.get(legacyEntity.key, MyEntity);
+            const recentFromDsToPlain = await recentFromDs.toPlain(clt.datastoreClient);
+            delete recentFromDsToPlain['key'];
+            const legacyFromDsToPlain = await legacyFromDs.toPlain(clt.datastoreClient);
+            delete legacyFromDsToPlain['key'];
+            expect(JSON.stringify(recentFromDsToPlain)).toEqual(JSON.stringify(legacyFromDsToPlain));
         });
 
         it('should serialize and deserialize simple entities consistently', async () => {
             @Exclude()
             class MyEntity extends Entity {
-                @Persist()
+                @Persist({ noindex: true })
                 text?: string;
 
                 @Persist()
@@ -106,13 +202,13 @@ describe('DataModels', () => {
             // Verify entity is ready to be saved into datastore
             const e1ToDs = e1.toDatastore();
             expect(e1ToDs).toEqual({
-                'key': new datastore.Key({ path: ['MyEntity', 1234] }),
-                'data': {
-                    'text': 'bonjour',
-                    'number': 5678,
-                    'child_key': new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
+                key: new datastore.Key({ path: ['MyEntity', 1234] }),
+                data: {
+                    text: 'bonjour',
+                    number: 5678,
+                    child_key: new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
                 },
-                'excludeFromIndexes': [],
+                excludeFromIndexes: ['text'],
             });
 
             // Verify entity cannot be restored until saved into datastore
@@ -126,7 +222,7 @@ describe('DataModels', () => {
             // Verify entity from datastore can be restored into model
             const [e1RawDs] = await clt.datastoreClient.get(e1ToDs.key);
             const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity);
-            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDs)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromDs)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
 
             // Verify entity is ready to be saved into cache as JSON
             const e1ToPlain = await e1.toPlain(clt.datastoreClient);
@@ -143,8 +239,8 @@ describe('DataModels', () => {
             expect(JSON.stringify(e1FromPlain)).toEqual(JSON.stringify(e1));
 
             // Class transformer direct use shoul also output consisten results
-            const e1FromDirectPlain = plainToClass(MyEntity, classToPlain(e1));
-            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            const e1FromDirectPlain = plainToInstance(MyEntity, instanceToPlain(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
             await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();
 
             // Entity keys should keep either the id or name properly set between calls to the datastore
@@ -222,7 +318,7 @@ describe('DataModels', () => {
                 info_key?: Key;
 
                 myInnerMethod = (): string => {
-                    return `Library should not try to persist me`;
+                    return 'Library should not try to persist me';
                 };
 
                 constructor(props?: Partial<MyInnerEntity>) {
@@ -233,13 +329,13 @@ describe('DataModels', () => {
 
             @Exclude()
             class MyEntity extends Entity {
-                @Persist()
+                @Persist({ noindex: true })
                 text?: string;
 
                 @Persist()
                 number?: number;
 
-                @Persist()
+                @Persist({ noindex: true })
                 details?: string[];
 
                 @PersistStruct(() => GeoPt)
@@ -251,11 +347,11 @@ describe('DataModels', () => {
                 @PersistStruct(() => MyInnerEntity)
                 inner?: MyInnerEntity;
 
-                @PersistStruct(() => MyInnerEntity)
+                @PersistStruct(() => MyInnerEntity, { noindex: true })
                 inners?: MyInnerEntity[];
 
                 myInnerMethod = (): string => {
-                    return `Library should not try to persist me`;
+                    return 'Library should not try to persist me';
                 };
 
                 constructor(props?: Partial<MyEntity>) {
@@ -296,20 +392,20 @@ describe('DataModels', () => {
             // Verify entity is ready to be saved into datastore
             const e1ToDs = e1.toDatastore();
             expect(e1ToDs).toEqual({
-                'key': new datastore.Key({ path: ['MyParentEntity', '1234-parent', 'MyEntity', 1234], namespace: 'subspace' }),
-                'data': {
-                    'text': 'hello',
-                    'number': 5678,
-                    'details': ['d1', 'd2', 'd3'],
-                    'location': clt.datastoreClient.geoPoint({ latitude: 43.1, longitude: 2.3 }),
-                    'child_key': new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
-                    'inner': {
+                key: new datastore.Key({ path: ['MyParentEntity', '1234-parent', 'MyEntity', 1234], namespace: 'subspace' }),
+                data: {
+                    text: 'hello',
+                    number: 5678,
+                    details: ['d1', 'd2', 'd3'],
+                    location: clt.datastoreClient.geoPoint({ latitude: 43.1, longitude: 2.3 }),
+                    child_key: new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
+                    inner: {
                         'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner'] }),
                         'info_text': '',
                         'info_number': 0,
                         'info_location': clt.datastoreClient.geoPoint({ latitude: 0, longitude: 0 }),
                     },
-                    'inners': [
+                    inners: [
                         {
                             'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner-1'] }),
                             'info_text': 'inner-1',
@@ -324,7 +420,7 @@ describe('DataModels', () => {
                         },
                     ],
                 },
-                'excludeFromIndexes': [],
+                excludeFromIndexes: ['text', 'details[]', 'inners[]'],
             });
 
             // Verify entity cannot be restored until saved into datastore
@@ -338,7 +434,7 @@ describe('DataModels', () => {
             // Verify entity from datastore can be restored into model
             const [e1RawDs] = await clt.datastoreClient.get(e1ToDs.key);
             const e1FromDs = MyEntity.fromDatastore(e1RawDs, MyEntity);
-            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDs)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromDs)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
 
             // Verify entity is ready to be saved into cache as JSON
             const e1ToPlain = await e1.toPlain(clt.datastoreClient);
@@ -373,11 +469,11 @@ describe('DataModels', () => {
 
             // Verity entity from plain matches the original entity
             const e1FromPlain = MyEntity.fromPlain(e1ToPlain, MyEntity);
-            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
 
             // Class transformer direct use shoul also output consisten results
-            const e1FromDirectPlain = plainToClass(MyEntity, classToPlain(e1));
-            expect(JSON.stringify(DataUtils.sortJSON(classToClass(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(classToClass(e1))));
+            const e1FromDirectPlain = plainToInstance(MyEntity, instanceToPlain(e1));
+            expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
             await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();
         });
 

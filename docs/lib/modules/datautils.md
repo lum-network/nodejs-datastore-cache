@@ -5,6 +5,7 @@
 ### Functions
 
 - [getKeyValue](datautils.md#getkeyvalue)
+- [legacyEntityToNested](datautils.md#legacyentitytonested)
 - [propToDatastore](datautils.md#proptodatastore)
 - [propToPlain](datautils.md#proptoplain)
 - [sortJSON](datautils.md#sortjson)
@@ -32,6 +33,29 @@ Name | Type | Description |
 `propertyName` | K | the prop name    |
 
 **Returns:** T[K]
+
+___
+
+### legacyEntityToNested
+
+▸ `Const`**legacyEntityToNested**(`dsEntity`: *any*): *any*
+
+Create a nested entity from a legacy flatten entity
+
+Legacy flattened entities structures where stored using dots instead of actual structures.
+Example:
+- flattened (legacy): { inner.text_value: '1', inner.number_value: 2 }
+- nested: { inner: { text_value: '1', number_value: 2 } }
+
+#### Parameters:
+
+Name | Type | Description |
+------ | ------ | ------ |
+`dsEntity` | *any* | a datastore entity, either from a previous Entity.toDatastore call or retrieve from a datastore call   |
+
+**Returns:** *any*
+
+the entity with all flatten fields nested
 
 ___
 

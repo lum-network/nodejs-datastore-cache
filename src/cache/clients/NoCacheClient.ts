@@ -6,7 +6,12 @@ import { ICacheClient } from '../interfaces';
  */
 export class NoCacheClient implements ICacheClient {
     /** Does nothing */
-    close = async () => {
+    connect = async () => {
+        return;
+    };
+
+    /** Does nothing */
+    disconnect = async () => {
         return;
     };
 
@@ -26,8 +31,8 @@ export class NoCacheClient implements ICacheClient {
     };
 
     /** Does nothing */
-    set = async () => {
-        return;
+    set = async (): Promise<boolean> => {
+        return true;
     };
 
     /** Does nothing */

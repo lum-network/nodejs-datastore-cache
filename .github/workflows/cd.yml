@@ -13,7 +13,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [12.x]
+        node-version: [14.x]
         redis-version: [5]
         python-version: [2.7]
 
@@ -41,7 +41,7 @@ jobs:
           redis-version: ${{ matrix.redis-version }}
 
       - name: Set up Cloud SDK
-        uses: google-github-actions/setup-gcloud@master
+        uses: google-github-actions/setup-gcloud@v0
       - name: Install Cloud beta commands
         run: gcloud components install beta --quiet
       - name: Install Cloud beta emulator

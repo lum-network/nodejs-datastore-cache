@@ -36,10 +36,11 @@ const cltRedisCache = new DataClient({}, new RedisCacheClient());
 - [allocateIds](dataclient.md#allocateids)
 - [cacheKeyFromDatastoreKey](dataclient.md#cachekeyfromdatastorekey)
 - [cacheKeysFromDatastoreKeys](dataclient.md#cachekeysfromdatastorekeys)
-- [close](dataclient.md#close)
+- [connect](dataclient.md#connect)
 - [createQuery](dataclient.md#createquery)
 - [delete](dataclient.md#delete)
 - [deleteMulti](dataclient.md#deletemulti)
+- [disconnect](dataclient.md#disconnect)
 - [get](dataclient.md#get)
 - [getMulti](dataclient.md#getmulti)
 - [newTransactionClient](dataclient.md#newtransactionclient)
@@ -53,7 +54,7 @@ const cltRedisCache = new DataClient({}, new RedisCacheClient());
 
 ### constructor
 
-\+ **new DataClient**(`datastoreOptions?`: DatastoreOptions, `cacheClient?`: ICacheClient, `cloneClient?`: [*DataClient*](dataclient.md)): [*DataClient*](dataclient.md)
+\+ **new DataClient**(`datastoreOptions?`: *DatastoreOptions*, `cacheClient?`: ICacheClient, `cloneClient?`: [*DataClient*](dataclient.md)): [*DataClient*](dataclient.md)
 
 Creates the underlying datastore instance by forwarding it the specified client options
 
@@ -61,7 +62,7 @@ Creates the underlying datastore instance by forwarding it the specified client 
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`datastoreOptions?` | DatastoreOptions | datastore client options   |
+`datastoreOptions?` | *DatastoreOptions* | datastore client options   |
 `cacheClient?` | ICacheClient | cache client instance   |
 `cloneClient?` | [*DataClient*](dataclient.md) | mostly used internally to clone the client during transactions    |
 
@@ -148,11 +149,11 @@ Name | Type | Description |
 
 ___
 
-### close
+### connect
 
-▸ **close**(): *Promise*<*void*\>
+▸ **connect**(): *Promise*<*void*\>
 
-Terminates the underlying datastore client as well as the cache client
+Connects the underlying datastore client as well as the cache client
 
 **Returns:** *Promise*<*void*\>
 
@@ -206,6 +207,16 @@ Delete the cache data associated with those key
 Name | Type |
 ------ | ------ |
 `keys` | [*Key*](key.md)[] |
+
+**Returns:** *Promise*<*void*\>
+
+___
+
+### disconnect
+
+▸ **disconnect**(): *Promise*<*void*\>
+
+Terminates the underlying datastore client as well as the cache client
 
 **Returns:** *Promise*<*void*\>
 
