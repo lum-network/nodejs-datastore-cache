@@ -94,13 +94,13 @@ describe('Cache Layer', () => {
 
     describe('RedisCacheClient error handling', () => {
         it('returns error if connection closed', async () => {
-            const clt = new RedisCacheClient();
+            const clt = new RedisCacheClient({ url: 'redis://localhost:6379' });
             await expect(clt.get('foo')).rejects.toThrow(ClientClosedError);
         });
 
         it('emit connection events', async (done) => {
             expect.assertions(2);
-            const clt = new RedisCacheClient({}, async (ev: CacheClientEvent) => {
+            const clt = new RedisCacheClient({ url: 'redis://localhost:6379' }, async (ev: CacheClientEvent) => {
                 expect([CacheClientEvent.Connected, CacheClientEvent.Ready, CacheClientEvent.Closed]).toContain(ev);
                 if (ev === CacheClientEvent.Ready) {
                     clt.disconnect();
