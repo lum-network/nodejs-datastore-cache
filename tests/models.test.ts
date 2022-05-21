@@ -202,24 +202,13 @@ describe('DataModels', () => {
             // Verify entity is ready to be saved into datastore
             const e1ToDs = e1.toDatastore();
             expect(e1ToDs).toEqual({
-                'key': new datastore.Key({ path: ['MyEntity', 1234] }),
-                'data': [
-                    {
-                        'name': 'text',
-                        'value': 'bonjour',
-                        'excludeFromIndexes': true,
-                    },
-                    {
-                        'name': 'number',
-                        'value': 5678,
-                        'excludeFromIndexes': false,
-                    },
-                    {
-                        'name': 'child_key',
-                        'value': new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
-                        'excludeFromIndexes': false,
-                    },
-                ],
+                key: new datastore.Key({ path: ['MyEntity', 1234] }),
+                data: {
+                    text: 'bonjour',
+                    number: 5678,
+                    child_key: new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
+                },
+                excludeFromIndexes: ['text'],
             });
 
             // Verify entity cannot be restored until saved into datastore
@@ -403,62 +392,35 @@ describe('DataModels', () => {
             // Verify entity is ready to be saved into datastore
             const e1ToDs = e1.toDatastore();
             expect(e1ToDs).toEqual({
-                'key': new datastore.Key({ path: ['MyParentEntity', '1234-parent', 'MyEntity', 1234], namespace: 'subspace' }),
-                'data': [
-                    {
-                        'name': 'text',
-                        'value': 'hello',
-                        'excludeFromIndexes': true,
+                key: new datastore.Key({ path: ['MyParentEntity', '1234-parent', 'MyEntity', 1234], namespace: 'subspace' }),
+                data: {
+                    text: 'hello',
+                    number: 5678,
+                    details: ['d1', 'd2', 'd3'],
+                    location: clt.datastoreClient.geoPoint({ latitude: 43.1, longitude: 2.3 }),
+                    child_key: new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
+                    inner: {
+                        'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner'] }),
+                        'info_text': '',
+                        'info_number': 0,
+                        'info_location': clt.datastoreClient.geoPoint({ latitude: 0, longitude: 0 }),
                     },
-                    {
-                        'name': 'number',
-                        'value': 5678,
-                        'excludeFromIndexes': false,
-                    },
-                    {
-                        'name': 'details',
-                        'value': ['d1', 'd2', 'd3'],
-                        'excludeFromIndexes': true,
-                    },
-                    {
-                        'name': 'location',
-                        'value': clt.datastoreClient.geoPoint({ latitude: 43.1, longitude: 2.3 }),
-                        'excludeFromIndexes': false,
-                    },
-                    {
-                        'name': 'child_key',
-                        'value': new datastore.Key({ path: ['MyChildEntity', '1234-child'] }),
-                        'excludeFromIndexes': false,
-                    },
-                    {
-                        'name': 'inner',
-                        'value': {
-                            'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner'] }),
-                            'info_text': '',
-                            'info_number': 0,
-                            'info_location': clt.datastoreClient.geoPoint({ latitude: 0, longitude: 0 }),
+                    inners: [
+                        {
+                            'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner-1'] }),
+                            'info_text': 'inner-1',
+                            'info_number': 1,
+                            'info_location': clt.datastoreClient.geoPoint({ latitude: 1.1, longitude: 1.2 }),
                         },
-                        'excludeFromIndexes': false,
-                    },
-                    {
-                        'name': 'inners',
-                        'value': [
-                            {
-                                'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner-1'] }),
-                                'info_text': 'inner-1',
-                                'info_number': 1,
-                                'info_location': clt.datastoreClient.geoPoint({ latitude: 1.1, longitude: 1.2 }),
-                            },
-                            {
-                                'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner-2'] }),
-                                'info_text': 'inner-2',
-                                'info_number': 2,
-                                'info_location': clt.datastoreClient.geoPoint({ latitude: 2.1, longitude: 2.2 }),
-                            },
-                        ],
-                        'excludeFromIndexes': true,
-                    },
-                ],
+                        {
+                            'key': new datastore.Key({ path: ['MyInnerEntity', '1234-inner-2'] }),
+                            'info_text': 'inner-2',
+                            'info_number': 2,
+                            'info_location': clt.datastoreClient.geoPoint({ latitude: 2.1, longitude: 2.2 }),
+                        },
+                    ],
+                },
+                excludeFromIndexes: ['text', 'details[]', 'inners[]'],
             });
 
             // Verify entity cannot be restored until saved into datastore

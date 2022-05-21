@@ -12,7 +12,8 @@ import { getKeyValue, propToPlain, propToDatastore, legacyEntityToNested } from 
  */
 export type DatastoreEntity = {
     key: datastore_entity.Key;
-    data: { name: string; value: unknown; excludeFromIndexes?: boolean }[];
+    data: { [Key: string]: unknown };
+    excludeFromIndexes?: string[];
 };
 
 /**
@@ -91,30 +92,6 @@ export abstract class Entity {
     };
 
     /**
-     * Converts entity properties into datastore properties
-     * This method should rarely be used by outside code.
-     */
-    toDatastoreData = (): { name: string; value: unknown; excludeFromIndexes?: boolean }[] => {
-        const obj: { name: string; value: unknown; excludeFromIndexes?: boolean }[] = [];
-        const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
-        const attributes = getAttributes(this);
-        for (const i in props) {
-            const p = props[i];
-            const v = getKeyValue(this, p);
-            if (p === 'key' || p.startsWith('_') || typeof v === 'function') {
-                continue;
-            }
-            const attrs = (attributes[p] as DatastoreOptions) || {};
-            obj.push({
-                name: attrs.name || p,
-                value: propToDatastore(v),
-                excludeFromIndexes: attrs.noindex || false,
-            });
-        }
-        return obj;
-    };
-
-    /**
      * Gets the indexes exclusions from the decorators metadata
      * Such as @Persist({ noindex: true })
      *
@@ -168,7 +145,8 @@ export abstract class Entity {
         }
         return {
             key: this.key && this.key.toDatastore(),
-            data: this.toDatastoreData(),
+            data: this.toDatastoreObject(false),
+            excludeFromIndexes: this.getIndexesExclusions(),
         };
     };
 
