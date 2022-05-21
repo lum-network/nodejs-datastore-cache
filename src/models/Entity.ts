@@ -3,16 +3,16 @@ import { entity as datastore_entity } from '@google-cloud/datastore/build/src/en
 import { ClassConstructor, Exclude, plainToInstance } from 'class-transformer';
 
 import { Key, PersistKey } from '.';
+import { DatastoreOptions } from './decorators';
 import { getAttributes } from './metadata';
-import { getKeyValue, propToPlain, propToDatastore } from './utils';
+import { getKeyValue, propToPlain, propToDatastore, legacyEntityToNested } from './utils';
 
 /**
  * DatastoreEntity as used by the datastore client for calls such as save
  */
 export type DatastoreEntity = {
     key: datastore_entity.Key;
-    data: { [Key: string]: unknown };
-    excludeFromIndexes?: string[];
+    data: { name: string; value: unknown; excludeFromIndexes?: boolean }[];
 };
 
 /**
@@ -46,12 +46,11 @@ export abstract class Entity {
      *
      * @param dsEntity a datastore entity, either from a previous Entity.toDatastore call or retrieve from a datastore call
      * @param cls the class to convert the datastore entity into
-     * @param store a datastore client instance
      */
     static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>): T => {
         if (dsEntity[datastore_entity.KEY_SYMBOL]) {
             // Deserializing from datastore response
-            const entity: T = plainToInstance(cls, dsEntity);
+            const entity: T = plainToInstance(cls, legacyEntityToNested(dsEntity));
             entity.key = Key.fromDatastore(dsEntity[datastore_entity.KEY_SYMBOL]);
             return entity;
         }
@@ -78,13 +77,39 @@ export abstract class Entity {
     toDatastoreObject = (nested: boolean): { [Key: string]: unknown } => {
         const obj: { [Key: string]: unknown } = {};
         const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
+        const attributes = getAttributes(this);
         for (const i in props) {
             const p = props[i];
             const v = getKeyValue(this, p);
             if ((nested === false && p === 'key') || p.startsWith('_') || typeof v === 'function') {
                 continue;
             }
-            obj[p] = propToDatastore(v);
+            const attrs = (attributes[p] as DatastoreOptions) || {};
+            obj[attrs.name || p] = propToDatastore(v);
+        }
+        return obj;
+    };
+
+    /**
+     * Converts entity properties into datastore properties
+     * This method should rarely be used by outside code.
+     */
+    toDatastoreData = (): { name: string; value: unknown; excludeFromIndexes?: boolean }[] => {
+        const obj: { name: string; value: unknown; excludeFromIndexes?: boolean }[] = [];
+        const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
+        const attributes = getAttributes(this);
+        for (const i in props) {
+            const p = props[i];
+            const v = getKeyValue(this, p);
+            if (p === 'key' || p.startsWith('_') || typeof v === 'function') {
+                continue;
+            }
+            const attrs = (attributes[p] as DatastoreOptions) || {};
+            obj.push({
+                name: attrs.name || p,
+                value: propToDatastore(v),
+                excludeFromIndexes: attrs.noindex || false,
+            });
         }
         return obj;
     };
@@ -143,8 +168,7 @@ export abstract class Entity {
         }
         return {
             key: this.key && this.key.toDatastore(),
-            data: this.toDatastoreObject(false),
-            excludeFromIndexes: this.getIndexesExclusions(),
+            data: this.toDatastoreData(),
         };
     };
 
@@ -158,13 +182,15 @@ export abstract class Entity {
     toPlain = async (store: datastore.Datastore, keyLocationPrefix?: string): Promise<{ [Key: string]: unknown }> => {
         const obj: { [Key: string]: unknown } = {};
         const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
+        const attributes = getAttributes(this);
         for (const i in props) {
             const p = props[i];
             const v = getKeyValue(this, p);
             if (p.startsWith('_') || typeof v === 'function') {
                 continue;
             }
-            obj[p] = await propToPlain(v, store, keyLocationPrefix);
+            const attrs = (attributes[p] as DatastoreOptions) || {};
+            obj[attrs.name || p] = await propToPlain(v, store, keyLocationPrefix);
         }
         return obj;
     };
