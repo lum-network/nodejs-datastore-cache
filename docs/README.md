@@ -16,7 +16,7 @@ Therefore, using the @google-cloud/datastore directly, in parallel to this libra
 
 The serialization is made using the [class-transformer](https://github.com/typestack/class-transformer) library.
 
-Due to the google datastore library implementation, serializing using the generic `classToPlain` and `Entity.toPlain` method does not output the same result (for more information you can look into the `Key.encode` method and see that it requires a datastore instance which is not possible to provide using `classToPlain`).
+Due to the google datastore library implementation, serializing using the generic `instanceToPlain` and `Entity.toPlain` method does not output the same result (for more information you can look into the `Key.encode` method and see that it requires a datastore instance which is not possible to provide using `instanceToPlain`).
 
 This is actually not much of an issue but something developers need to be aware of, as it can lead to unpredictable behaviour if not handled properly. Both serializations are compatible when de-serializing anyway.
 
@@ -48,7 +48,7 @@ console.log(toPlain);
 //     child_key: 'agNkZXZyFwsSCUNoaWxkS2luZCIIY2hpbGQtaWQM'
 // }
 
-const nativePlain = classToPlain(e);
+const nativePlain = instanceToPlain(e);
 console.log(nativePlain);
 // Will output
 // {
@@ -72,8 +72,8 @@ console.log(nativePlain);
 // }
 
 const deserialized = [
-    plainToClass(MyEntity, toPlain),
-    plainToClass(MyEntity, nativePlain),
+    plainToInstance(MyEntity, toPlain),
+    plainToInstance(MyEntity, nativePlain),
     Entity.fromPlain(toPlain, MyEntity),
     Entity.fromPlain(nativePlain, MyEntity),
 ];
@@ -110,7 +110,7 @@ Each persisted property must either use one of the following decorators:
 -   @PersistStruct: For nested entities / class such as GeoPt
 -   @Persist: For native types
 
-Failing to enforce a global @Exclude() for each an Entity will not trigger any particular issue until you try to serialize the Entity using `classToPlain` directly.
+Failing to enforce a global @Exclude() for each an Entity will not trigger any particular issue until you try to serialize the Entity using `instanceToPlain` directly.
 So better do it all the time just to be sure.
 
 ```typescript

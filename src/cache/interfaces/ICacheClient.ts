@@ -1,7 +1,8 @@
 import { CacheClientEvent, ICacheString, ICacheStringArray, ICacheStringMap } from './ICacheTypes';
 
 export interface ICacheClient {
-    close: () => Promise<void>;
+    connect: () => Promise<void>;
+    disconnect: () => Promise<void>;
     events: (callback: (event: CacheClientEvent) => void) => Promise<void>;
     get: (key: string) => Promise<ICacheString>;
     mget: (keys: Array<string>) => Promise<ICacheStringArray>;

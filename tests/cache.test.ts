@@ -1,4 +1,4 @@
-import * as redis from 'redis';
+import { ClientClosedError } from 'redis';
 
 import { NoCacheClient, RedisCacheClient } from '../src';
 import { ICacheClient } from '../src/cache';
@@ -7,12 +7,13 @@ import { CacheClientEvent } from '../src/cache/interfaces';
 describe('Cache Layer', () => {
     describe('NoCacheClient functional', () => {
         let clt: ICacheClient;
-        beforeAll(() => {
+        beforeAll(async () => {
             clt = new NoCacheClient();
+            await clt.connect();
         });
 
         afterAll(async () => {
-            await expect(clt.close()).resolves.toEqual(undefined);
+            await expect(clt.disconnect()).resolves.toEqual(undefined);
         });
 
         it('returns empty results on every single call', async () => {
@@ -40,12 +41,13 @@ describe('Cache Layer', () => {
 
     describe('RedisCacheClient functional', () => {
         let clt: ICacheClient;
-        beforeAll(() => {
+        beforeAll(async () => {
             clt = new RedisCacheClient();
+            await clt.connect();
         });
 
         afterAll(async () => {
-            await expect(clt.close()).resolves.toEqual(undefined);
+            await expect(clt.disconnect()).resolves.toEqual(undefined);
         });
 
         it('returns proper results', async () => {
@@ -56,8 +58,8 @@ describe('Cache Layer', () => {
             await expect(clt.get('foo')).resolves.toEqual(null);
             // Multi calls simple tests
             await expect(clt.mset({ 'foo': 'bar' })).resolves.toEqual(undefined);
-            await expect(clt.mget(['foo'])).resolves.toEqual(['bar']);
-            await expect(clt.mdel(['foo'])).resolves.toEqual(undefined);
+            await expect(clt.mget(['foo', 'novalue'])).resolves.toEqual(['bar', null]);
+            await expect(clt.mdel(['foo', 'novalue'])).resolves.toEqual(undefined);
             await expect(clt.mget(['foo'])).resolves.toEqual([null]);
         });
 
@@ -84,19 +86,19 @@ describe('Cache Layer', () => {
     describe('RedisCacheClient error handling', () => {
         it('returns error if connection closed', async () => {
             const clt = new RedisCacheClient();
-            await expect(clt.close()).resolves.toEqual(undefined);
-            await expect(clt.get('foo')).rejects.toThrow(redis.RedisError);
+            await expect(clt.get('foo')).rejects.toThrow(ClientClosedError);
         });
 
         it('emit connection events', async (done) => {
             expect.assertions(2);
             const clt = new RedisCacheClient({}, async (ev: CacheClientEvent) => {
-                expect([CacheClientEvent.Connected, CacheClientEvent.Ready]).toContain(ev);
+                expect([CacheClientEvent.Connected, CacheClientEvent.Ready, CacheClientEvent.Closed]).toContain(ev);
                 if (ev === CacheClientEvent.Ready) {
-                    clt.close();
+                    clt.disconnect();
                     done();
                 }
             });
+            await clt.connect();
         });
     });
 });

@@ -10,7 +10,7 @@ module.exports = {
     globals: {
         'ts-jest': {
             diagnostics: false,
-            tsconfig: 'tsconfig.spec.json',
+            tsconfig: './tests/tsconfig.json',
         },
     },
 };

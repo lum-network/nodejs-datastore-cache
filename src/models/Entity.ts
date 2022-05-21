@@ -1,6 +1,6 @@
 import * as datastore from '@google-cloud/datastore';
 import { entity as datastore_entity } from '@google-cloud/datastore/build/src/entity';
-import { ClassConstructor, Exclude, plainToClass } from 'class-transformer';
+import { ClassConstructor, Exclude, plainToInstance } from 'class-transformer';
 
 import { Key, PersistKey } from '.';
 import { getAttributes } from './metadata';
@@ -51,7 +51,7 @@ export abstract class Entity {
     static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>): T => {
         if (dsEntity[datastore_entity.KEY_SYMBOL]) {
             // Deserializing from datastore response
-            const entity: T = plainToClass(cls, dsEntity);
+            const entity: T = plainToInstance(cls, dsEntity);
             entity.key = Key.fromDatastore(dsEntity[datastore_entity.KEY_SYMBOL]);
             return entity;
         }
@@ -66,7 +66,7 @@ export abstract class Entity {
      * @param cls the class to convert the plain object into
      */
     static fromPlain = <T extends Entity>(plainEntity: object, cls: ClassConstructor<T>): T => {
-        return plainToClass(cls, plainEntity);
+        return plainToInstance(cls, plainEntity);
     };
 
     /**

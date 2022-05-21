@@ -1,7 +1,7 @@
 import * as datastore from '@google-cloud/datastore';
 import { entity } from '@google-cloud/datastore/build/src/entity';
 
-import { Type, Expose, classToPlain, plainToClass, ExposeOptions, Transform, Exclude } from 'class-transformer';
+import { Type, Expose, instanceToPlain, plainToInstance, ExposeOptions, Transform, Exclude } from 'class-transformer';
 import { Persist, PersistStruct } from './decorators';
 
 const urlSafeKeyHelper = new entity.URLSafeKey();
@@ -108,7 +108,7 @@ export class Key {
     set path(path: Array<string | number>) {
         if (this.id && path && path.length > 0 && path[path.length - 1] === this.id.toString()) {
             // Fix id being passed in the path as strings which confuses our setup
-            // this happens when using plainToClass(datastore.Key, Key) if the key is an ID key
+            // this happens when using plainToInstance(datastore.Key, Key) if the key is an ID key
             path[path.length - 1] = this.id;
         }
         this.key = new datastore.Key({ namespace: this.namespace, path: path });
@@ -199,7 +199,7 @@ export class Key {
         if (typeof plain === 'string') {
             return Key.decode(plain);
         }
-        return plainToClass(Key, plain);
+        return plainToInstance(Key, plain);
     };
 
     /**
@@ -247,6 +247,6 @@ export class Key {
      * Converts the Key instance into a plain object
      */
     toPlain = (): { [key: string]: any } => {
-        return classToPlain(this);
+        return instanceToPlain(this);
     };
 }

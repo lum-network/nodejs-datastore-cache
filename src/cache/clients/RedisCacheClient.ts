@@ -1,4 +1,4 @@
-import * as redis from 'redis';
+import { createClient, RedisClientOptions, RedisClientType, RedisModules, RedisFunctions, RedisScripts } from 'redis';
 
 import { CacheClientEvent, ICacheClient, ICacheString, ICacheStringArray, ICacheStringMap } from '../interfaces';
 
@@ -6,7 +6,7 @@ import { CacheClientEvent, ICacheClient, ICacheString, ICacheStringArray, ICache
  * Redis cache layer implementation using https://github.com/NodeRedis/node-redis
  */
 export class RedisCacheClient implements ICacheClient {
-    client: redis.RedisClient;
+    client: RedisClientType<RedisModules, RedisFunctions, RedisScripts>;
     eventsCallback: (event: CacheClientEvent) => void;
 
     /**
@@ -16,14 +16,14 @@ export class RedisCacheClient implements ICacheClient {
      * @param options redis client options
      * @param eventsCallback events callback
      */
-    constructor(options?: redis.ClientOpts, eventsCallback?: (event: CacheClientEvent) => void) {
+    constructor(options?: RedisClientOptions<RedisModules, RedisFunctions, RedisScripts>, eventsCallback?: (event: CacheClientEvent) => void) {
         if (eventsCallback) {
             this.eventsCallback = eventsCallback;
         } else {
             this.eventsCallback = () => {};
         }
 
-        this.client = new redis.RedisClient(options || {});
+        this.client = createClient(options || {});
 
         this.client.on('ready', () => {
             this.eventsCallback(CacheClientEvent.Ready);
@@ -40,13 +40,18 @@ export class RedisCacheClient implements ICacheClient {
     }
 
     /**
-     * Terminates the client connection to the redis server
+     * Opens the client connection to the redis server
      */
-    close = async () => {
-        return new Promise<void>((resolve) => {
-            this.client.end(true);
-            resolve();
-        });
+    connect = async () => {
+        await this.client.connect();
+    };
+
+    /**
+     * Terminates the client connection to the redis server
+     * Gracefully closes the connection using quit which waits for pending commands to finish
+     */
+    disconnect = async () => {
+        await this.client.quit();
     };
 
     /**
@@ -67,15 +72,7 @@ export class RedisCacheClient implements ICacheClient {
      * @param key a redis key
      */
     get = async (key: string): Promise<ICacheString> => {
-        return new Promise<ICacheString>((resolve, reject) => {
-            this.client.get(key, (err: Error | null, reply: ICacheString) => {
-                if (err !== null) {
-                    reject(err);
-                } else {
-                    resolve(reply);
-                }
-            });
-        });
+        return this.client.get(key);
     };
 
     /**
@@ -84,19 +81,10 @@ export class RedisCacheClient implements ICacheClient {
      * @param keys an array of redis keys
      */
     mget = async (keys: Array<string>): Promise<ICacheStringArray> => {
-        return new Promise<ICacheStringArray>((resolve, reject) => {
-            if (keys.length === 0) {
-                resolve([]);
-                return;
-            }
-            this.client.mget(keys, (err: Error | null, reply: ICacheStringArray) => {
-                if (err !== null) {
-                    reject(err);
-                } else {
-                    resolve(reply);
-                }
-            });
-        });
+        if (keys.length === 0) {
+            return [];
+        }
+        return this.client.mGet(keys);
     };
 
     /**
@@ -106,26 +94,18 @@ export class RedisCacheClient implements ICacheClient {
      * @param value the value to store in redis
      * @param expiresInSec the optional expiration time for the key in seconds (must be > 0 to be taken into account)
      */
-    set = async (key: string, value: string, expiresInSec?: number) => {
-        return new Promise<void>((resolve, reject) => {
-            if (expiresInSec && expiresInSec > 0) {
-                this.client.setex(key, expiresInSec, value, (err: Error | null) => {
-                    if (err !== null) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
-            } else {
-                this.client.set(key, value, (err: Error | null) => {
-                    if (err !== null) {
-                        reject(err);
-                    } else {
-                        resolve();
-                    }
-                });
+    set = async (key: string, value: string, expiresInSec?: number): Promise<void> => {
+        if (expiresInSec && expiresInSec > 0) {
+            const res = await this.client.setEx(key, expiresInSec, value);
+            if (res !== 'OK') {
+                throw Error(`redis SETEX failed with error ${res}`);
             }
-        });
+        } else {
+            const res = await this.client.set(key, value);
+            if (res !== 'OK') {
+                throw Error(`redis SET failed with error ${res}`);
+            }
+        }
     };
 
     /**
@@ -134,24 +114,13 @@ export class RedisCacheClient implements ICacheClient {
      * @param kvs a map of key value to store in redis
      */
     mset = async (kvs: ICacheStringMap) => {
-        return new Promise<void>((resolve, reject) => {
-            const args: string[] = [];
-            for (const k in kvs) {
-                args.push(k);
-                args.push(kvs[k]);
-            }
-            if (args.length === 0) {
-                resolve();
-                return;
-            }
-            this.client.mset(...args, (err: Error | null) => {
-                if (err !== null) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        if (Object.keys(kvs).length === 0) {
+            return;
+        }
+        const res = await this.client.mSet(kvs);
+        if (res !== 'OK') {
+            throw Error(`redis MSET failed with error ${res}`);
+        }
     };
 
     /**
@@ -160,15 +129,7 @@ export class RedisCacheClient implements ICacheClient {
      * @param key a redis key
      */
     del = async (key: string) => {
-        return new Promise<void>((resolve, reject) => {
-            this.client.del(key, (err: Error | null) => {
-                if (err !== null) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        await this.client.del(key);
     };
 
     /**
@@ -177,14 +138,9 @@ export class RedisCacheClient implements ICacheClient {
      * @param keya an array of redis keys
      */
     mdel = async (keys: Array<string>) => {
-        return new Promise<void>((resolve, reject) => {
-            this.client.del(keys, (err: Error | null) => {
-                if (err !== null) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        if (keys.length === 0) {
+            return;
+        }
+        await this.client.del(keys);
     };
 }

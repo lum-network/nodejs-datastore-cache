@@ -44,10 +44,17 @@ export class DataClient {
     }
 
     /**
+     * Connects the underlying datastore client as well as the cache client
+     */
+    connect = async () => {
+        await this.cacheClient.connect();
+    }
+
+    /**
      * Terminates the underlying datastore client as well as the cache client
      */
-    close = async () => {
-        await this.cacheClient.close();
+    disconnect = async () => {
+        await this.cacheClient.disconnect();
     };
 
     /**
