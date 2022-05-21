@@ -32,6 +32,10 @@
         "format": "prettier --write '**/*.{js,jsx,ts,tsx,css,json,md,html,yml}'",
         "bump": "npm version"
     },
+    "engines": {
+        "node": ">=14",
+        "yarn": ">=1.0.0 <2.0.0"
+    },
     "dependencies": {
         "@google-cloud/datastore": "^6.6.2",
         "class-transformer": "^0.5.1",
