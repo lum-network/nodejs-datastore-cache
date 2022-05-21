@@ -166,6 +166,7 @@ const e = new MyEntity({
 });
 
 const clt = new DataClient();
+await clt.connect();
 
 // Persist the entity
 await clt.save(e);
@@ -208,6 +209,7 @@ Using this method is highly recommended:
 
 ```typescript
 const clt = new DataClient();
+await clt.connect();
 
 const qry = clt.createQuery('MyEntity').filter('type', 'some-type').order('created_at', { descending: true });
 
@@ -235,6 +237,7 @@ Using this method is not recommended:
 
 ```typescript
 const clt = new DataClient();
+await clt.connect();
 
 const qry = clt.createQuery('MyEntity').filter('type', 'some-type').order('created_at', { descending: true });
 
@@ -252,6 +255,7 @@ Transactions can either be done manually in case of very specific needs or done 
 
 ```typescript
 const clt = new DataClient();
+await clt.connect();
 
 const key = Key.nameKey('MyEntity', 'my-unique-id');
 
@@ -281,6 +285,7 @@ const resp = await clt.runInTransaction(async (tx) => {
 
 ```typescript
 const clt = new DataClient();
+await clt.connect();
 // Create a transaction manually
 const tx = clt.newTransactionClient();
 // Start the transaction

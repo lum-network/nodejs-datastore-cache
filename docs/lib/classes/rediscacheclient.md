@@ -23,8 +23,9 @@ Redis cache layer implementation using https://github.com/NodeRedis/node-redis
 
 ### Methods
 
-- [close](rediscacheclient.md#close)
+- [connect](rediscacheclient.md#connect)
 - [del](rediscacheclient.md#del)
+- [disconnect](rediscacheclient.md#disconnect)
 - [events](rediscacheclient.md#events)
 - [get](rediscacheclient.md#get)
 - [mdel](rediscacheclient.md#mdel)
@@ -36,7 +37,7 @@ Redis cache layer implementation using https://github.com/NodeRedis/node-redis
 
 ### constructor
 
-\+ **new RedisCacheClient**(`options?`: ClientOpts, `eventsCallback?`: (`event`: CacheClientEvent) => *void*): [*RedisCacheClient*](rediscacheclient.md)
+\+ **new RedisCacheClient**(`options?`: *RedisClientOptions*<RedisModules, RedisFunctions, RedisScripts\>, `eventsCallback?`: (`event`: CacheClientEvent) => *void*): [*RedisCacheClient*](rediscacheclient.md)
 
 Creates the underlying redis client by forwarding it the specified client options
 An events callback can also be specified here or later by calling the events method (see method details for more information)
@@ -45,7 +46,7 @@ An events callback can also be specified here or later by calling the events met
 
 Name | Type | Description |
 ------ | ------ | ------ |
-`options?` | ClientOpts | redis client options   |
+`options?` | *RedisClientOptions*<RedisModules, RedisFunctions, RedisScripts\> | redis client options   |
 `eventsCallback?` | (`event`: CacheClientEvent) => *void* | events callback    |
 
 **Returns:** [*RedisCacheClient*](rediscacheclient.md)
@@ -54,7 +55,7 @@ Name | Type | Description |
 
 ### client
 
-• **client**: *RedisClient*
+• **client**: *RedisClientType*<RedisModules, RedisFunctions, RedisScripts\>
 
 ___
 
@@ -64,11 +65,11 @@ ___
 
 ## Methods
 
-### close
+### connect
 
-▸ **close**(): *Promise*<*void*\>
+▸ **connect**(): *Promise*<*void*\>
 
-Terminates the client connection to the redis server
+Opens the client connection to the redis server
 
 **Returns:** *Promise*<*void*\>
 
@@ -85,6 +86,17 @@ Deletes the value stored in redis at the specified key
 Name | Type | Description |
 ------ | ------ | ------ |
 `key` | *string* | a redis key    |
+
+**Returns:** *Promise*<*void*\>
+
+___
+
+### disconnect
+
+▸ **disconnect**(): *Promise*<*void*\>
+
+Terminates the client connection to the redis server
+Gracefully closes the connection using quit which waits for pending commands to finish
 
 **Returns:** *Promise*<*void*\>
 
@@ -175,7 +187,7 @@ ___
 
 ### set
 
-▸ **set**(`key`: *string*, `value`: *string*, `expiresInSec?`: *number*): *Promise*<*void*\>
+▸ **set**(`key`: *string*, `value`: *string*, `expiresInSec?`: *number*, `onlySetIfNotExist?`: *boolean*): *Promise*<*boolean*\>
 
 Set data by key
 
@@ -185,6 +197,7 @@ Name | Type | Description |
 ------ | ------ | ------ |
 `key` | *string* | a redis key   |
 `value` | *string* | the value to store in redis   |
-`expiresInSec?` | *number* | the optional expiration time for the key in seconds (must be > 0 to be taken into account)    |
+`expiresInSec?` | *number* | the optional expiration time for the key in seconds (must be > 0 to be taken into account)   |
+`onlySetIfNotExist?` | *boolean* | optional set only if value does not exist in cache    |
 
-**Returns:** *Promise*<*void*\>
+**Returns:** *Promise*<*boolean*\>
