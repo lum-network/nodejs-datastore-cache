@@ -31,8 +31,8 @@ export class NoCacheClient implements ICacheClient {
     };
 
     /** Does nothing */
-    set = async () => {
-        return;
+    set = async (): Promise<boolean> => {
+        return true;
     };
 
     /** Does nothing */

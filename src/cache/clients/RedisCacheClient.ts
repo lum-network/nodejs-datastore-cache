@@ -93,19 +93,14 @@ export class RedisCacheClient implements ICacheClient {
      * @param key a redis key
      * @param value the value to store in redis
      * @param expiresInSec the optional expiration time for the key in seconds (must be > 0 to be taken into account)
+     * @param onlySetIfNotExist optional set only if value does not exist in cache
      */
-    set = async (key: string, value: string, expiresInSec?: number): Promise<void> => {
-        if (expiresInSec && expiresInSec > 0) {
-            const res = await this.client.setEx(key, expiresInSec, value);
-            if (res !== 'OK') {
-                throw Error(`redis SETEX failed with error ${res}`);
-            }
-        } else {
-            const res = await this.client.set(key, value);
-            if (res !== 'OK') {
-                throw Error(`redis SET failed with error ${res}`);
-            }
-        }
+    set = async (key: string, value: string, expiresInSec?: number, onlySetIfNotExist?: boolean): Promise<boolean> => {
+        const res = await this.client.set(key, value, {
+            'EX': expiresInSec && expiresInSec > 0 ? expiresInSec : undefined,
+            'NX': onlySetIfNotExist === true ? true : undefined,
+        });
+        return res === 'OK';
     };
 
     /**

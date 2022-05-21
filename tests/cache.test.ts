@@ -18,7 +18,7 @@ describe('Cache Layer', () => {
 
         it('returns empty results on every single call', async () => {
             // Cache single calls are functional
-            await expect(clt.set('foo', 'bar')).resolves.toEqual(undefined);
+            await expect(clt.set('foo', 'bar')).resolves.toEqual(true);
             await expect(clt.get('foo')).resolves.toEqual(null);
             await expect(clt.del('foo')).resolves.toEqual(undefined);
             await expect(clt.get('foo')).resolves.toEqual(null);
@@ -52,7 +52,7 @@ describe('Cache Layer', () => {
 
         it('returns proper results', async () => {
             // Single calls simple tests
-            await expect(clt.set('foo', 'bar')).resolves.toEqual(undefined);
+            await expect(clt.set('foo', 'bar')).resolves.toEqual(true);
             await expect(clt.get('foo')).resolves.toEqual('bar');
             await expect(clt.del('foo')).resolves.toEqual(undefined);
             await expect(clt.get('foo')).resolves.toEqual(null);
@@ -72,8 +72,17 @@ describe('Cache Layer', () => {
             await expect(clt.mget(['foobar', 'foo', 'bar'])).resolves.toEqual([null, 'bar', null]);
         });
 
-        it('can set keys to expire', async () => {
-            await expect(clt.set('expire-foo-bar', 'oh no!', 1)).resolves.toEqual(undefined);
+        it('can set keys ex and nx', async () => {
+            await expect(clt.set('mutex', 'true', 1, true)).resolves.toEqual(true);
+            await expect(clt.set('mutex', 'true', 1, true)).resolves.toEqual(false);
+            await (() =>
+                new Promise((resolve) => {
+                    setTimeout(resolve, 1100);
+                }))();
+            await expect(clt.get('mutex')).resolves.toEqual(null);
+            await expect(clt.set('mutex', 'true', 1, true)).resolves.toEqual(true);
+
+            await expect(clt.set('expire-foo-bar', 'oh no!', 1)).resolves.toEqual(true);
             await expect(clt.get('expire-foo-bar')).resolves.toEqual('oh no!');
             await (() =>
                 new Promise((resolve) => {
