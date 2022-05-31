@@ -4,7 +4,7 @@ import { instanceToInstance, instanceToPlain, Exclude, plainToInstance } from 'c
 import { DataUtils, DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 
 describe('DataModels', () => {
-    describe('Key features', () => {
+    /* describe('Key features', () => {
         let clt: DataClient;
         beforeAll(async () => {
             clt = new DataClient();
@@ -67,7 +67,7 @@ describe('DataModels', () => {
             const plain3 = k3.toPlain();
             expect(Key.fromPlain(plain3).toDatastore()).toStrictEqual(k3.toDatastore());
         });
-    });
+    });*/
 
     describe('Entity features', () => {
         let clt: DataClient;
@@ -82,12 +82,26 @@ describe('DataModels', () => {
 
         it('should serialize and deserialize legacy nested structures consistently', async () => {
             @Exclude()
+            class MyInnerInnerEntity extends Entity {
+                @Persist()
+                info: string;
+
+                constructor(props?: Partial<MyInnerInnerEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            @Exclude()
             class MyInnerEntity extends Entity {
                 @Persist()
                 info_text?: string;
 
                 @Persist({ noindex: true })
                 info_number?: number;
+
+                @PersistStruct(() => MyInnerInnerEntity, {noindex: true})
+                tests?: MyInnerInnerEntity[] = [];
 
                 constructor(props?: Partial<MyInnerEntity>) {
                     super(props && props.key);
@@ -129,11 +143,17 @@ describe('DataModels', () => {
                 @Persist({ name: 'inner.info_number' })
                 inner_info_number?: number;
 
+                @Persist({name: 'inner.tests.info', noindex: true})
+                inner_tests_info?: string[];
+
                 @Persist({ name: 'inners.info_text' })
                 inners_info_text?: string[];
 
                 @Persist({ name: 'inners.info_number', noindex: true })
                 inners_info_number?: number[];
+
+                @Persist({name: 'inners.test.info', noindex: true})
+                inners_tests_info?: string[];
 
                 constructor(props?: Partial<MyLegacyEntity>) {
                     super(props && props.key);
@@ -145,8 +165,11 @@ describe('DataModels', () => {
                 key: Key.nameKey('MyRecentEntity', '1234-1234'),
                 info_text: 'foo',
                 info_number: 1000,
-                inner: new MyInnerEntity({ info_text: 'inner-foo', info_number: 2000 }),
-                inners: [new MyInnerEntity({ info_text: 'inners-foo-1', info_number: 3000 }), new MyInnerEntity({ info_text: 'inners-foo-2', info_number: 4000 })],
+                inner: new MyInnerEntity({ info_text: 'inner-foo', info_number: 2000, tests: [new MyInnerInnerEntity({ info: 'coucou' })] }),
+                inners: [
+                    new MyInnerEntity({ info_text: 'inners-foo-1', info_number: 3000, tests: [new MyInnerInnerEntity({ info: 'coucou-1' })] }),
+                    new MyInnerEntity({ info_text: 'inners-foo-2', info_number: 4000, tests: [new MyInnerInnerEntity({ info: 'coucou-2' })] }),
+                ],
             });
 
             const legacyEntity = new MyLegacyEntity({
@@ -157,6 +180,8 @@ describe('DataModels', () => {
                 inner_info_number: 2000,
                 inners_info_text: ['inners-foo-1', 'inners-foo-2'],
                 inners_info_number: [3000, 4000],
+                inners_tests_info: ['coucou-1', 'coucou-2'],
+                inner_tests_info: ['coucou']
             });
 
             // Save recent and legacy entities into datastore
@@ -174,7 +199,7 @@ describe('DataModels', () => {
             expect(JSON.stringify(recentFromDsToPlain)).toEqual(JSON.stringify(legacyFromDsToPlain));
         });
 
-        it('should serialize and deserialize simple entities consistently', async () => {
+        /*it('should serialize and deserialize simple entities consistently', async () => {
             @Exclude()
             class MyEntity extends Entity {
                 @Persist({ noindex: true })
@@ -507,6 +532,6 @@ describe('DataModels', () => {
             expect(e.y).toEqual(12 * 12);
             await clt.saveMulti([e]);
             expect(e.y).toEqual(e.x * e.x);
-        });
+        });*/
     });
 });
