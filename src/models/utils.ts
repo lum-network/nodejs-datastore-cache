@@ -55,6 +55,7 @@ export const propToPlain = async (elem: unknown, store: datastore.Datastore, key
 
 /**
  * Create a nested entity from a legacy flatten entity
+ * Handles up to 2 level of nested properties which should be the legacy datastore limitation as well
  *
  * Legacy flattened entities structures where stored using dots instead of actual structures.
  * Example:
@@ -65,33 +66,62 @@ export const propToPlain = async (elem: unknown, store: datastore.Datastore, key
  */
 export const legacyEntityToNested = (dsEntity: any): any => {
     const nestedEntity: any = {};
-    let found = false;
-    const props = Object.getOwnPropertyNames(dsEntity) as Array<string>;
-    for (const p of props) {
-        if (p.indexOf('.') >= 0) {
-            found = true;
-            const parts = p.split('.');
-            if (dsEntity[p] instanceof Array) {
-                if (!nestedEntity[parts[0]]) {
-                    nestedEntity[parts[0]] = [];
+    let foundNestedProperty = false;
+    const props = Object.getOwnPropertyNames(dsEntity);
+    for (const propName of props) {
+        if (propName.indexOf('.') >= 0) {
+            // Property name is type of my_prop.sub_prop with potentially one more nested step such as my_prop.sub_prop.inner_prop
+            foundNestedProperty = true;
+            const nameParts = propName.split('.');
+            if (dsEntity[propName] instanceof Array) {
+                if (!nestedEntity[nameParts[0]]) {
+                    // Initialize nested array
+                    nestedEntity[nameParts[0]] = [];
                 }
-                for (let i = 0; i < dsEntity[p].length; i++) {
-                    if (nestedEntity[parts[0]].length <= i) {
-                        nestedEntity[parts[0]].push({});
+                // Iterate over nested values
+                for (let i = 0; i < dsEntity[propName].length; i++) {
+                    // For each nested value we set
+                    // entity.prop.nested_prop[i] = nested_value
+                    if (nestedEntity[nameParts[0]].length <= i) {
+                        nestedEntity[nameParts[0]].push({});
                     }
-                    nestedEntity[parts[0]][i][parts[1]] = dsEntity[p][i];
+                    if (nameParts.length > 2) {
+                        // two level nested array
+                        // ex: { my_prop: [ { sub_prop: { inner_prop } }] }
+                        if (!nestedEntity[nameParts[0]][i][nameParts[1]]) {
+                            nestedEntity[nameParts[0]][i][nameParts[1]] = {};
+                        }
+                        nestedEntity[nameParts[0]][i][nameParts[1]][nameParts[2]] = dsEntity[propName][i];
+                    } else {
+                        // one level nested array
+                        // ex: { my_prop: [ { sub_prop }] }
+                        nestedEntity[nameParts[0]][i][nameParts[1]] = dsEntity[propName][i];
+                    }
                 }
             } else {
-                if (!nestedEntity[parts[0]]) {
-                    nestedEntity[parts[0]] = {};
+                if (!nestedEntity[nameParts[0]]) {
+                    nestedEntity[nameParts[0]] = {};
                 }
-                nestedEntity[parts[0]][parts[1]] = dsEntity[p];
+                if (nameParts.length > 2) {
+                    // two level nested value
+                    // ex: { my_prop: { sub_prop: { inner_prop } } }
+                    if (!nestedEntity[nameParts[0]][nameParts[1]]) {
+                        nestedEntity[nameParts[0]][nameParts[1]] = {};
+                    }
+                    nestedEntity[nameParts[0]][nameParts[1]][nameParts[2]] = dsEntity[propName];
+                } else {
+                    // one level nested value
+                    // ex: { my_prop: { sub_prop } }
+                    nestedEntity[nameParts[0]][nameParts[1]] = dsEntity[propName];
+                }
             }
         } else {
-            nestedEntity[p] = dsEntity[p];
+            // Property name does not indicate that it holds nested values
+            nestedEntity[propName] = dsEntity[propName];
         }
     }
-    if (!found) {
+    if (!foundNestedProperty) {
+        // If no nested property found we can return the original object to prevent useless editions
         return dsEntity;
     }
     return nestedEntity;

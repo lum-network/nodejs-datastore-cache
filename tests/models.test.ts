@@ -82,12 +82,29 @@ describe('DataModels', () => {
 
         it('should serialize and deserialize legacy nested structures consistently', async () => {
             @Exclude()
+            class MySubInnerEntity extends Entity {
+                @Persist()
+                info_text?: string;
+
+                @Persist({ noindex: true })
+                info_number?: number;
+
+                constructor(props?: Partial<MySubInnerEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            @Exclude()
             class MyInnerEntity extends Entity {
                 @Persist()
                 info_text?: string;
 
                 @Persist({ noindex: true })
                 info_number?: number;
+
+                @PersistStruct(() => MySubInnerEntity)
+                subinner?: MySubInnerEntity;
 
                 constructor(props?: Partial<MyInnerEntity>) {
                     super(props && props.key);
@@ -126,14 +143,26 @@ describe('DataModels', () => {
                 @Persist({ name: 'inner.info_text' })
                 inner_info_text?: string;
 
-                @Persist({ name: 'inner.info_number' })
+                @Persist({ name: 'inner.info_number', noindex: true })
                 inner_info_number?: number;
+
+                @Persist({ name: 'inner.subinner.info_text' })
+                inner_subinner_info_text?: string;
+
+                @Persist({ name: 'inner.subinner.info_number', noindex: true })
+                inner_subinner_info_number?: number;
 
                 @Persist({ name: 'inners.info_text' })
                 inners_info_text?: string[];
 
                 @Persist({ name: 'inners.info_number', noindex: true })
                 inners_info_number?: number[];
+
+                @Persist({ name: 'inners.subinner.info_text' })
+                inners_subinner_info_text?: string[];
+
+                @Persist({ name: 'inners.subinner.info_number', noindex: true })
+                inners_subinner_info_number?: number[];
 
                 constructor(props?: Partial<MyLegacyEntity>) {
                     super(props && props.key);
@@ -145,18 +174,37 @@ describe('DataModels', () => {
                 key: Key.nameKey('MyRecentEntity', '1234-1234'),
                 info_text: 'foo',
                 info_number: 1000,
-                inner: new MyInnerEntity({ info_text: 'inner-foo', info_number: 2000 }),
-                inners: [new MyInnerEntity({ info_text: 'inners-foo-1', info_number: 3000 }), new MyInnerEntity({ info_text: 'inners-foo-2', info_number: 4000 })],
+                inner: new MyInnerEntity({
+                    info_text: 'inner-foo-1',
+                    info_number: 1001,
+                    subinner: new MySubInnerEntity({ info_text: 'subinner-foo-2', info_number: 1002 }),
+                }),
+                inners: [
+                    new MyInnerEntity({
+                        info_text: 'inners-foo-3',
+                        info_number: 1003,
+                        subinner: new MySubInnerEntity({ info_text: 'subinner-foo-4', info_number: 1004 }),
+                    }),
+                    new MyInnerEntity({
+                        info_text: 'inners-foo-5',
+                        info_number: 1005,
+                        subinner: new MySubInnerEntity({ info_text: 'subinner-foo-6', info_number: 1006 }),
+                    }),
+                ],
             });
 
             const legacyEntity = new MyLegacyEntity({
                 key: Key.nameKey('MyLegacyEntity', '1234-1234'),
                 info_text: 'foo',
                 info_number: 1000,
-                inner_info_text: 'inner-foo',
-                inner_info_number: 2000,
-                inners_info_text: ['inners-foo-1', 'inners-foo-2'],
-                inners_info_number: [3000, 4000],
+                inner_info_text: 'inner-foo-1',
+                inner_info_number: 1001,
+                inner_subinner_info_text: 'subinner-foo-2',
+                inner_subinner_info_number: 1002,
+                inners_info_text: ['inners-foo-3', 'inners-foo-5'],
+                inners_info_number: [1003, 1005],
+                inners_subinner_info_text: ['subinner-foo-4', 'subinner-foo-6'],
+                inners_subinner_info_number: [1004, 1006],
             });
 
             // Save recent and legacy entities into datastore
