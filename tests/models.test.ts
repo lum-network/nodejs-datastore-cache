@@ -4,7 +4,7 @@ import { instanceToInstance, instanceToPlain, Exclude, plainToInstance } from 'c
 import { DataUtils, DataClient, Entity, GeoPt, Key, Persist, PersistKey, PersistStruct } from '../src';
 
 describe('DataModels', () => {
-    /* describe('Key features', () => {
+    describe('Key features', () => {
         let clt: DataClient;
         beforeAll(async () => {
             clt = new DataClient();
@@ -67,7 +67,7 @@ describe('DataModels', () => {
             const plain3 = k3.toPlain();
             expect(Key.fromPlain(plain3).toDatastore()).toStrictEqual(k3.toDatastore());
         });
-    });*/
+    });
 
     describe('Entity features', () => {
         let clt: DataClient;
@@ -82,11 +82,14 @@ describe('DataModels', () => {
 
         it('should serialize and deserialize legacy nested structures consistently', async () => {
             @Exclude()
-            class MyInnerInnerEntity extends Entity {
+            class MySubInnerEntity extends Entity {
                 @Persist()
-                info: string;
+                info_text?: string;
 
-                constructor(props?: Partial<MyInnerInnerEntity>) {
+                @Persist({ noindex: true })
+                info_number?: number;
+
+                constructor(props?: Partial<MySubInnerEntity>) {
                     super(props && props.key);
                     Object.assign(this, props);
                 }
@@ -100,8 +103,8 @@ describe('DataModels', () => {
                 @Persist({ noindex: true })
                 info_number?: number;
 
-                @PersistStruct(() => MyInnerInnerEntity, {noindex: true})
-                tests?: MyInnerInnerEntity[] = [];
+                @PersistStruct(() => MySubInnerEntity)
+                subinner?: MySubInnerEntity;
 
                 constructor(props?: Partial<MyInnerEntity>) {
                     super(props && props.key);
@@ -140,11 +143,14 @@ describe('DataModels', () => {
                 @Persist({ name: 'inner.info_text' })
                 inner_info_text?: string;
 
-                @Persist({ name: 'inner.info_number' })
+                @Persist({ name: 'inner.info_number', noindex: true })
                 inner_info_number?: number;
 
-                @Persist({name: 'inner.tests.info', noindex: true})
-                inner_tests_info?: string[];
+                @Persist({ name: 'inner.subinner.info_text' })
+                inner_subinner_info_text?: string;
+
+                @Persist({ name: 'inner.subinner.info_number', noindex: true })
+                inner_subinner_info_number?: number;
 
                 @Persist({ name: 'inners.info_text' })
                 inners_info_text?: string[];
@@ -152,8 +158,11 @@ describe('DataModels', () => {
                 @Persist({ name: 'inners.info_number', noindex: true })
                 inners_info_number?: number[];
 
-                @Persist({name: 'inners.test.info', noindex: true})
-                inners_tests_info?: string[];
+                @Persist({ name: 'inners.subinner.info_text' })
+                inners_subinner_info_text?: string[];
+
+                @Persist({ name: 'inners.subinner.info_number', noindex: true })
+                inners_subinner_info_number?: number[];
 
                 constructor(props?: Partial<MyLegacyEntity>) {
                     super(props && props.key);
@@ -165,10 +174,22 @@ describe('DataModels', () => {
                 key: Key.nameKey('MyRecentEntity', '1234-1234'),
                 info_text: 'foo',
                 info_number: 1000,
-                inner: new MyInnerEntity({ info_text: 'inner-foo', info_number: 2000, tests: [new MyInnerInnerEntity({ info: 'coucou' })] }),
+                inner: new MyInnerEntity({
+                    info_text: 'inner-foo-1',
+                    info_number: 1001,
+                    subinner: new MySubInnerEntity({ info_text: 'subinner-foo-2', info_number: 1002 }),
+                }),
                 inners: [
-                    new MyInnerEntity({ info_text: 'inners-foo-1', info_number: 3000, tests: [new MyInnerInnerEntity({ info: 'coucou-1' })] }),
-                    new MyInnerEntity({ info_text: 'inners-foo-2', info_number: 4000, tests: [new MyInnerInnerEntity({ info: 'coucou-2' })] }),
+                    new MyInnerEntity({
+                        info_text: 'inners-foo-3',
+                        info_number: 1003,
+                        subinner: new MySubInnerEntity({ info_text: 'subinner-foo-4', info_number: 1004 }),
+                    }),
+                    new MyInnerEntity({
+                        info_text: 'inners-foo-5',
+                        info_number: 1005,
+                        subinner: new MySubInnerEntity({ info_text: 'subinner-foo-6', info_number: 1006 }),
+                    }),
                 ],
             });
 
@@ -176,12 +197,14 @@ describe('DataModels', () => {
                 key: Key.nameKey('MyLegacyEntity', '1234-1234'),
                 info_text: 'foo',
                 info_number: 1000,
-                inner_info_text: 'inner-foo',
-                inner_info_number: 2000,
-                inners_info_text: ['inners-foo-1', 'inners-foo-2'],
-                inners_info_number: [3000, 4000],
-                inners_tests_info: ['coucou-1', 'coucou-2'],
-                inner_tests_info: ['coucou']
+                inner_info_text: 'inner-foo-1',
+                inner_info_number: 1001,
+                inner_subinner_info_text: 'subinner-foo-2',
+                inner_subinner_info_number: 1002,
+                inners_info_text: ['inners-foo-3', 'inners-foo-5'],
+                inners_info_number: [1003, 1005],
+                inners_subinner_info_text: ['subinner-foo-4', 'subinner-foo-6'],
+                inners_subinner_info_number: [1004, 1006],
             });
 
             // Save recent and legacy entities into datastore
@@ -199,7 +222,7 @@ describe('DataModels', () => {
             expect(JSON.stringify(recentFromDsToPlain)).toEqual(JSON.stringify(legacyFromDsToPlain));
         });
 
-        /*it('should serialize and deserialize simple entities consistently', async () => {
+        it('should serialize and deserialize simple entities consistently', async () => {
             @Exclude()
             class MyEntity extends Entity {
                 @Persist({ noindex: true })
@@ -532,6 +555,6 @@ describe('DataModels', () => {
             expect(e.y).toEqual(12 * 12);
             await clt.saveMulti([e]);
             expect(e.y).toEqual(e.x * e.x);
-        });*/
+        });
     });
 });
