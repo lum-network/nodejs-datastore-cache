@@ -96,6 +96,23 @@ describe('DataModels', () => {
             }
 
             @Exclude()
+            class MySubInnerRepeatedPropsEntity extends Entity {
+                @Persist()
+                info_texts?: string[];
+
+                @Persist({ noindex: true })
+                info_numbers?: number[];
+
+                @PersistStruct(() => MySubInnerEntity)
+                subinner?: MySubInnerEntity[];
+
+                constructor(props?: Partial<MySubInnerRepeatedPropsEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            @Exclude()
             class MyInnerEntity extends Entity {
                 @Persist()
                 info_text?: string;
@@ -126,6 +143,9 @@ describe('DataModels', () => {
                 @PersistStruct(() => MyInnerEntity, { noindex: true })
                 inners?: MyInnerEntity[];
 
+                @PersistStruct(() => MySubInnerRepeatedPropsEntity)
+                inner_repeated_props: MySubInnerRepeatedPropsEntity;
+
                 constructor(props?: Partial<MyEntity>) {
                     super(props && props.key);
                     Object.assign(this, props);
@@ -152,17 +172,29 @@ describe('DataModels', () => {
                 @Persist({ name: 'inner.subinner.info_number', noindex: true })
                 inner_subinner_info_number?: number;
 
-                @Persist({ name: 'inners.info_text' })
+                @Persist({ name: 'inners.info_text' }) // legacyEntityToNested -> tricky ex3 case
                 inners_info_text?: string[];
 
-                @Persist({ name: 'inners.info_number', noindex: true })
+                @Persist({ name: 'inners.info_number', noindex: true }) // legacyEntityToNested -> tricky ex3 case
                 inners_info_number?: number[];
 
-                @Persist({ name: 'inners.subinner.info_text' })
+                @Persist({ name: 'inners.subinner.info_text' }) // legacyEntityToNested -> tricky ex4 case
                 inners_subinner_info_text?: string[];
 
-                @Persist({ name: 'inners.subinner.info_number', noindex: true })
+                @Persist({ name: 'inners.subinner.info_number', noindex: true }) // legacyEntityToNested -> tricky ex4 case
                 inners_subinner_info_number?: number[];
+
+                @Persist({ name: 'inner_repeated_props.info_texts' }) // legacyEntityToNested -> tricky ex1 case
+                inner_repeated_props_info_texts?: string[];
+
+                @Persist({ name: 'inner_repeated_props.info_numbers', noindex: true }) // legacyEntityToNested -> tricky ex1 case
+                inner_repeated_props_info_numbers?: number[];
+
+                @Persist({ name: 'inner_repeated_props.subinner.info_text', noindex: true }) // legacyEntityToNested -> tricky ex2 case
+                inner_repeated_props_subinner_info_text?: string[];
+
+                @Persist({ name: 'inner_repeated_props.subinner.info_number', noindex: true }) // legacyEntityToNested -> tricky ex2 case
+                inner_repeated_props_subinner_info_number?: number[];
 
                 constructor(props?: Partial<MyLegacyEntity>) {
                     super(props && props.key);
@@ -191,6 +223,11 @@ describe('DataModels', () => {
                         subinner: new MySubInnerEntity({ info_text: 'subinner-foo-6', info_number: 1006 }),
                     }),
                 ],
+                inner_repeated_props: new MySubInnerRepeatedPropsEntity({
+                    info_texts: ['inner-repeated-foo-7', 'inner-repeated-foo-8'],
+                    info_numbers: [1007, 1008],
+                    subinner: [new MySubInnerEntity({ info_text: 'inner-repeated-foo-9', info_number: 1009 }), new MySubInnerEntity({ info_text: 'inner-repeated-foo-10', info_number: 1010 })],
+                }),
             });
 
             const legacyEntity = new MyLegacyEntity({
@@ -205,6 +242,10 @@ describe('DataModels', () => {
                 inners_info_number: [1003, 1005],
                 inners_subinner_info_text: ['subinner-foo-4', 'subinner-foo-6'],
                 inners_subinner_info_number: [1004, 1006],
+                inner_repeated_props_info_texts: ['inner-repeated-foo-7', 'inner-repeated-foo-8'],
+                inner_repeated_props_info_numbers: [1007, 1008],
+                inner_repeated_props_subinner_info_text: ['inner-repeated-foo-9', 'inner-repeated-foo-10'],
+                inner_repeated_props_subinner_info_number: [1009, 1010],
             });
 
             // Save recent and legacy entities into datastore
@@ -219,6 +260,7 @@ describe('DataModels', () => {
             delete recentFromDsToPlain['key'];
             const legacyFromDsToPlain = await legacyFromDs.toPlain(clt.datastoreClient);
             delete legacyFromDsToPlain['key'];
+
             expect(JSON.stringify(recentFromDsToPlain)).toEqual(JSON.stringify(legacyFromDsToPlain));
         });
 
