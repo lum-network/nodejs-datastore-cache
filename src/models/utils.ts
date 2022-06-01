@@ -1,4 +1,5 @@
 import * as datastore from '@google-cloud/datastore';
+import { ClassConstructor } from 'class-transformer';
 
 import { Entity, Key, GeoPt } from '.';
 
@@ -62,61 +63,97 @@ export const propToPlain = async (elem: unknown, store: datastore.Datastore, key
  * - flattened (legacy): { inner.text_value: '1', inner.number_value: 2 }
  * - nested: { inner: { text_value: '1', number_value: 2 } }
  * @param dsEntity a datastore entity, either from a previous Entity.toDatastore call or retrieve from a datastore call
+ * @param cls a ClassContructor with property definitions
  * @returns the entity with all flatten fields nested
  */
-export const legacyEntityToNested = (dsEntity: any): any => {
+export const legacyEntityToNested = <T>(dsEntity: any, cls: ClassConstructor<T>): any => {
     const nestedEntity: any = {};
     let foundNestedProperty = false;
     const props = Object.getOwnPropertyNames(dsEntity);
     for (const propName of props) {
         if (propName.indexOf('.') >= 0) {
-            // Property name is type of my_prop.sub_prop with potentially one more nested step such as my_prop.sub_prop.inner_prop
+            // Property name indicates that it holds flattened nested values
+            // 1 nested level
+            // case1: my_prop.sub_prop = value
+            // case2: my_prop.sub_prop = [value]
+            // 2 nested levels
+            // case3: my_prop.sub_prop.inner_prop = value
+            // case4: my_prop.sub_prop.inner_prop = [value]
+            //
+            // Arrays can lead to two nested types and we only can determine the proper one using Reflection on the destination Class (cls)
+            // ex1: { my_prop: { sub_prop: [value] } }
+            // ex2: { my_prop: { sub_prop: [{ inner_prop: value }] } }
+            // ex3: { my_prop: [{ sub_prop: value }] }
+            // ex4: { my_prop: [{ sub_prop: { inner_prop: value } }] }
             foundNestedProperty = true;
             const nameParts = propName.split('.');
             if (dsEntity[propName] instanceof Array) {
                 if (!nestedEntity[nameParts[0]]) {
-                    // Initialize nested array
-                    nestedEntity[nameParts[0]] = [];
-                }
-                // Iterate over nested values
-                for (let i = 0; i < dsEntity[propName].length; i++) {
-                    // For each nested value we set
-                    // entity.prop.nested_prop[i] = nested_value
-                    if (nestedEntity[nameParts[0]].length <= i) {
-                        nestedEntity[nameParts[0]].push({});
-                    }
-                    if (nameParts.length > 2) {
-                        // two level nested array
-                        // ex: { my_prop: [ { sub_prop: { inner_prop } }] }
-                        if (!nestedEntity[nameParts[0]][i][nameParts[1]]) {
-                            nestedEntity[nameParts[0]][i][nameParts[1]] = {};
-                        }
-                        nestedEntity[nameParts[0]][i][nameParts[1]][nameParts[2]] = dsEntity[propName][i];
+                    if ((Reflect as any).getMetadata('design:type', cls.prototype, nameParts[0]) === Array) {
+                        // First nested level is an array
+                        // ex3: { my_prop: [{ sub_prop: value }] }
+                        // ex4: { my_prop: [{ sub_prop: { inner_prop: value } }] }
+                        nestedEntity[nameParts[0]] = [];
                     } else {
-                        // one level nested array
-                        // ex: { my_prop: [ { sub_prop }] }
-                        nestedEntity[nameParts[0]][i][nameParts[1]] = dsEntity[propName][i];
+                        // Second nested level is an array
+                        // ex1: { my_prop: { sub_prop: [value] } }
+                        // ex2: { my_prop: { sub_prop: [{ inner_prop: value }] } }
+                        nestedEntity[nameParts[0]] = {};
+                    }
+                }
+                // Iterate over flattened values
+                for (let i = 0; i < dsEntity[propName].length; i++) {
+                    if (nestedEntity[nameParts[0]] instanceof Array) {
+                        // cases: ex3 and ex4
+                        if (nestedEntity[nameParts[0]].length <= i) {
+                            nestedEntity[nameParts[0]].push({});
+                        }
+                        if (nameParts.length === 2) {
+                            // case ex3
+                            nestedEntity[nameParts[0]][i][nameParts[1]] = dsEntity[propName][i];
+                        } else {
+                            // case ex4
+                            if (!nestedEntity[nameParts[0]][i][nameParts[1]]) {
+                                nestedEntity[nameParts[0]][i][nameParts[1]] = {};
+                            }
+                            nestedEntity[nameParts[0]][i][nameParts[1]][nameParts[2]] = dsEntity[propName][i];
+                        }
+                    } else {
+                        // cases: ex1 and ex2
+                        if (!nestedEntity[nameParts[0]][nameParts[1]]) {
+                            nestedEntity[nameParts[0]][nameParts[1]] = [];
+                        }
+                        if (nameParts.length === 2) {
+                            // case ex1
+                            nestedEntity[nameParts[0]][nameParts[1]].push(dsEntity[propName][i]);
+                        } else {
+                            // case ex2
+                            if (nestedEntity[nameParts[0]][nameParts[1]].length <= i) {
+                                nestedEntity[nameParts[0]][nameParts[1]].push({});
+                            }
+                            nestedEntity[nameParts[0]][nameParts[1]][i][nameParts[2]] = dsEntity[propName][i];
+                        }
                     }
                 }
             } else {
                 if (!nestedEntity[nameParts[0]]) {
                     nestedEntity[nameParts[0]] = {};
                 }
-                if (nameParts.length > 2) {
+                if (nameParts.length === 2) {
+                    // one level nested value
+                    // ex: my_prop.sub_prop = value -> { my_prop: { sub_prop: value } }
+                    nestedEntity[nameParts[0]][nameParts[1]] = dsEntity[propName];
+                } else {
                     // two level nested value
-                    // ex: { my_prop: { sub_prop: { inner_prop } } }
+                    // ex: my_prop.sub_prop.inner_prop -> { my_prop: { sub_prop: { inner_prop: value } } }
                     if (!nestedEntity[nameParts[0]][nameParts[1]]) {
                         nestedEntity[nameParts[0]][nameParts[1]] = {};
                     }
                     nestedEntity[nameParts[0]][nameParts[1]][nameParts[2]] = dsEntity[propName];
-                } else {
-                    // one level nested value
-                    // ex: { my_prop: { sub_prop } }
-                    nestedEntity[nameParts[0]][nameParts[1]] = dsEntity[propName];
                 }
             }
         } else {
-            // Property name does not indicate that it holds nested values
+            // Property name does not indicate that it holds flattened nested values
             nestedEntity[propName] = dsEntity[propName];
         }
     }

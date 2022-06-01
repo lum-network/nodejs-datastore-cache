@@ -51,7 +51,7 @@ export abstract class Entity {
     static fromDatastore = <T extends Entity>(dsEntity: any, cls: ClassConstructor<T>): T => {
         if (dsEntity[datastore_entity.KEY_SYMBOL]) {
             // Deserializing from datastore response
-            const entity: T = plainToInstance(cls, legacyEntityToNested(dsEntity));
+            const entity: T = plainToInstance(cls, legacyEntityToNested(dsEntity, cls));
             entity.key = Key.fromDatastore(dsEntity[datastore_entity.KEY_SYMBOL]);
             return entity;
         }

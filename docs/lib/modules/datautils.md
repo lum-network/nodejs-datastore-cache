@@ -38,20 +38,28 @@ ___
 
 ### legacyEntityToNested
 
-▸ `Const`**legacyEntityToNested**(`dsEntity`: *any*): *any*
+▸ `Const`**legacyEntityToNested**<T\>(`dsEntity`: *any*, `cls`: *ClassConstructor*<T\>): *any*
 
 Create a nested entity from a legacy flatten entity
+Handles up to 2 level of nested properties which should be the legacy datastore limitation as well
 
 Legacy flattened entities structures where stored using dots instead of actual structures.
 Example:
 - flattened (legacy): { inner.text_value: '1', inner.number_value: 2 }
 - nested: { inner: { text_value: '1', number_value: 2 } }
 
+#### Type parameters:
+
+Name |
+------ |
+`T` |
+
 #### Parameters:
 
 Name | Type | Description |
 ------ | ------ | ------ |
 `dsEntity` | *any* | a datastore entity, either from a previous Entity.toDatastore call or retrieve from a datastore call   |
+`cls` | *ClassConstructor*<T\> | a ClassContructor with property definitions   |
 
 **Returns:** *any*
 
