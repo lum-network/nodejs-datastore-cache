@@ -1,20 +1,20 @@
 {
-    "name": "@horus-tech/nodejs-datastore-cache",
-    "version": "1.3.2",
+    "name": "@lum-network/nodejs-datastore-cache",
+    "version": "1.3.3",
     "license": "Apache-2.0",
     "description": "Opinionated NodeJS library for simplified google cloud datastore and cache layer interactions.",
-    "homepage": "https://github.com/horus-tech/nodejs-datastore-cache#readme",
+    "homepage": "https://github.com/lum-network/nodejs-datastore-cache#readme",
     "main": "build/index.js",
     "typings": "build/index.d.ts",
     "bugs": {
-        "url": "https://github.com/horus-tech/nodejs-datastore-cache/issues"
+        "url": "https://github.com/lum-network/nodejs-datastore-cache/issues"
     },
     "author": {
-        "name": "Horus"
+        "name": "Lum Network"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/horus-tech/nodejs-datastore-cache.git"
+        "url": "https://github.com/lum-network/nodejs-datastore-cache.git"
     },
     "tags": [
         "gcloud",

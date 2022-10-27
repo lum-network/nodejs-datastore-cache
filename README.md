@@ -1,6 +1,6 @@
 # NodeJS Datastore Cache library
 
-[![npm version](https://badge.fury.io/js/%40horus-tech%2Fnodejs-datastore-cache.svg)](https://badge.fury.io/js/%40horus-tech%2Fnodejs-datastore-cache)
+[![npm version](https://badge.fury.io/js/%40lum-network%2Fnodejs-datastore-cache.svg)](https://badge.fury.io/js/%40lum-network%2Fnodejs-datastore-cache)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 **Opinionated NodeJS library for simplified google cloud datastore and cache layer interactions.**
@@ -31,12 +31,12 @@ Core dependencies include:
 
 ## Node version
 
-The library is tested using **NodeJS 10.x, 12.x, 14.x, 15.x**.
+The library is tested using **NodeJS 12.x, 14.x, 15.x, 16.x**.
 
 ## Installation
 
 ```bash
-yarn add @horus-tech/nodejs-datastore-cache
+yarn add @lum-network/nodejs-datastore-cache
 ```
 
 ## Documentation
