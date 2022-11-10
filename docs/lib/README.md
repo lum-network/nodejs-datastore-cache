@@ -1,4 +1,4 @@
-# @horus-tech/nodejs-datastore-cache
+# @lum-network/nodejs-datastore-cache
 
 ## Table of contents
 
