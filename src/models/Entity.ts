@@ -79,15 +79,44 @@ export abstract class Entity {
         const obj: { [Key: string]: unknown } = {};
         const props = Object.getOwnPropertyNames(this) as Array<keyof Entity>;
         const attributes = getAttributes(this);
+
         for (const i in props) {
             const p = props[i];
-            const v = getKeyValue(this, p);
-            if ((nested === false && p === 'key') || p.startsWith('_') || typeof v === 'function') {
+            const value = getKeyValue(this, p);
+            if ((nested === false && p === 'key') || p.startsWith('_') || typeof value === 'function') {
                 continue;
             }
+
             const attrs = (attributes[p] as DatastoreOptions) || {};
-            obj[attrs.name || p] = propToDatastore(v);
+            let newValue = value as any;
+
+            // If the property as a type metadata, we need to cast it to the proper type
+            switch (attrs.type) {
+                // Force value to save as a date
+                case 'date':
+                    // If the value isn't a Date, try to cast it as a Date
+                    if ((value as any) instanceof Date) {
+                        newValue = value;
+                    } else {
+                        newValue = new Date(value as any);
+                    }
+                    break;
+                // Force value to save as a float
+                case 'float':
+                    // If value is an Integer, try to cast it as a float
+                    if (Number.isInteger(value as any)) {
+                        newValue = parseFloat(value as any);
+                    } else {
+                        newValue = value;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            obj[attrs.name || p] = propToDatastore(newValue);
         }
+
         return obj;
     };
 

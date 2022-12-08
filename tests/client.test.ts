@@ -393,5 +393,42 @@ describe('DataClient features', () => {
             });
             expect(e.key.id).toBeGreaterThan(0);
         });
+
+        it('should force type', async () => {
+            @Exclude()
+            class MyTypeEntity extends Entity {
+                @Persist({ type: 'float' })
+                float: number;
+
+                @Persist()
+                dateWithoutDecorator: string | Date;
+
+                @Persist({ type: 'date' })
+                dateWithDecorator: string | Date;
+
+                constructor(props?: Partial<MyTypeEntity>) {
+                    super(props && props.key);
+                    Object.assign(this, props);
+                }
+            }
+
+            const e = new MyTypeEntity({
+                key: Key.incompleteKey('MyTypeEntity'),
+                float: 42,
+                dateWithoutDecorator: new Date().toString(),
+                dateWithDecorator: new Date().toString(),
+            });
+
+            await clt.save(e);
+
+            expect(e.key.id).toBeGreaterThan(0);
+
+            const result = await clt.get(e.key, MyTypeEntity);
+
+            expect(result.float).toEqual(42);
+            expect(result.dateWithoutDecorator instanceof Date).toBeFalsy();
+            expect(result.dateWithDecorator instanceof Date).toBeTruthy();
+            expect(result.dateWithDecorator).toEqual(new Date(e.dateWithDecorator));
+        });
     });
 });

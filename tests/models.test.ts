@@ -561,7 +561,7 @@ describe('DataModels', () => {
             const e1FromPlain = MyEntity.fromPlain(e1ToPlain, MyEntity);
             expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
 
-            // Class transformer direct use shoul also output consisten results
+            // Class transformer direct use should also output consistent results
             const e1FromDirectPlain = plainToInstance(MyEntity, instanceToPlain(e1));
             expect(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1FromDirectPlain)))).toEqual(JSON.stringify(DataUtils.sortJSON(instanceToInstance(e1))));
             await expect(clt.get(e1FromDirectPlain.key, MyEntity)).resolves.toBeTruthy();

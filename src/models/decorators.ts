@@ -2,9 +2,12 @@ import { ExposeOptions, Expose, Type, TypeHelpOptions } from 'class-transformer'
 
 import { addAttribute } from './metadata';
 
+export type TypeOptions = 'float' | 'date';
+
 export interface DatastoreOptions {
     name?: string;
     noindex?: boolean;
+    type?: TypeOptions;
 }
 
 /**
@@ -14,7 +17,7 @@ export interface DatastoreOptions {
  */
 export const Persist = (options: ExposeOptions & DatastoreOptions = {}): PropertyDecorator => {
     return (object: any, propertyName?: string | Symbol): void => {
-        addAttribute(object, propertyName as string, { noindex: options.noindex === true, name: options.name });
+        addAttribute(object, propertyName as string, { noindex: options.noindex === true, name: options.name, type: options.type });
         Expose(options)(object, propertyName as string);
     };
 };
@@ -28,7 +31,7 @@ export const Persist = (options: ExposeOptions & DatastoreOptions = {}): Propert
  */
 export const PersistStruct = (typeFunction?: (type?: TypeHelpOptions) => Function, options: ExposeOptions & DatastoreOptions = {}): PropertyDecorator => {
     return (object: any, propertyName?: string | Symbol): void => {
-        addAttribute(object, propertyName as string, { noindex: options.noindex === true, name: options.name });
+        addAttribute(object, propertyName as string, { noindex: options.noindex === true, name: options.name, type: options.type });
         Type(typeFunction)(object, propertyName as string);
         Expose(options)(object, propertyName as string);
     };
