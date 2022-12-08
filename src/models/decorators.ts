@@ -2,10 +2,12 @@ import { ExposeOptions, Expose, Type, TypeHelpOptions } from 'class-transformer'
 
 import { addAttribute } from './metadata';
 
+export type TypeOptions = 'float' | 'date';
+
 export interface DatastoreOptions {
     name?: string;
     noindex?: boolean;
-    type?: 'float' | 'date';
+    type?: TypeOptions;
 }
 
 /**
