@@ -400,6 +400,15 @@ describe('DataClient features', () => {
                 @Persist({ type: 'float' })
                 float: number;
 
+                @Persist({ type: 'float' })
+                intWithFloatType: number;
+
+                @Persist({ type: 'float' })
+                int: number;
+
+                @Persist({ type: 'float' })
+                floatWithIntType: number;
+
                 @Persist()
                 dateWithoutDecorator: string | Date;
 
@@ -415,6 +424,9 @@ describe('DataClient features', () => {
             const e = new MyTypeEntity({
                 key: Key.incompleteKey('MyTypeEntity'),
                 float: 42.0,
+                intWithFloatType: 42,
+                int: 42,
+                floatWithIntType: 42.0,
                 dateWithoutDecorator: new Date().toString(),
                 dateWithDecorator: new Date().toString(),
             });
@@ -426,6 +438,9 @@ describe('DataClient features', () => {
             const result = await clt.get(e.key, MyTypeEntity);
 
             expect(result.float).toEqual(42.0);
+            expect(result.intWithFloatType).toEqual(42.0);
+            expect(result.int).toEqual(42);
+            expect(result.floatWithIntType).toEqual(42);
             expect(result.dateWithoutDecorator instanceof Date).toBeFalsy();
             expect(result.dateWithDecorator instanceof Date).toBeTruthy();
             expect(result.dateWithDecorator).toEqual(new Date(e.dateWithDecorator));
