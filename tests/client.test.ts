@@ -414,7 +414,7 @@ describe('DataClient features', () => {
 
             const e = new MyTypeEntity({
                 key: Key.incompleteKey('MyTypeEntity'),
-                float: 42,
+                float: 42.0,
                 dateWithoutDecorator: new Date().toString(),
                 dateWithDecorator: new Date().toString(),
             });
@@ -425,7 +425,7 @@ describe('DataClient features', () => {
 
             const result = await clt.get(e.key, MyTypeEntity);
 
-            expect(result.float).toEqual(42);
+            expect(result.float).toEqual(42.0);
             expect(result.dateWithoutDecorator instanceof Date).toBeFalsy();
             expect(result.dateWithDecorator instanceof Date).toBeTruthy();
             expect(result.dateWithDecorator).toEqual(new Date(e.dateWithDecorator));

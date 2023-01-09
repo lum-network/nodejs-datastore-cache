@@ -105,11 +105,21 @@ export abstract class Entity {
                 case 'float':
                     // If value is an Integer, try to cast it as a float
                     if (Number.isInteger(value as any)) {
-                        newValue = parseFloat(value as any);
+                        newValue = new datastore_entity.Double(value as any);
                     } else {
                         newValue = value;
                     }
                     break;
+                // Force value to save as an int
+                case 'int':
+                    // If value is a float, try to cast it as an int
+                    if (!Number.isInteger(value as any)) {
+                        newValue = new datastore_entity.Int(value as any);
+                    } else {
+                        newValue = value;
+                    }
+                    break;
+
                 default:
                     break;
             }
