@@ -94,6 +94,10 @@ export abstract class Entity {
             switch (attrs.type) {
                 // Force value to save as a date
                 case 'date':
+                    if (!newValue) {
+                        throw Error(`Cannot save property ${p} as a date, value is undefined`);
+                    }
+
                     // If the value isn't a Date, try to cast it as a Date
                     if ((value as any) instanceof Date) {
                         newValue = value;
