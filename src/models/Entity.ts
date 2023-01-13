@@ -90,28 +90,30 @@ export abstract class Entity {
             const attrs = (attributes[p] as DatastoreOptions) || {};
             let newValue = value as any;
 
-            // If the property as a type metadata, we need to cast it to the proper type
-            switch (attrs.type) {
-                // Force value to save as a date
-                case 'date':
-                    // If the value isn't a Date, try to cast it as a Date
-                    if ((value as any) instanceof Date) {
-                        newValue = value;
-                    } else {
-                        newValue = new Date(value as any);
-                    }
-                    break;
-                // Force value to save as a float
-                case 'float':
-                    // If value is an Integer, try to cast it as a float
-                    if (Number.isInteger(value as any)) {
-                        newValue = parseFloat(value as any);
-                    } else {
-                        newValue = value;
-                    }
-                    break;
-                default:
-                    break;
+            if (newValue !== undefined && newValue !== null) {
+                // If the property as a type metadata, we need to cast it to the proper type
+                switch (attrs.type) {
+                    // Force value to save as a date
+                    case 'date':
+                        // If the value isn't a Date, try to cast it as a Date
+                        if ((value as any) instanceof Date) {
+                            newValue = value;
+                        } else {
+                            newValue = new Date(value as any);
+                        }
+                        break;
+                    // Force value to save as a float
+                    case 'float':
+                        newValue = new datastore_entity.Double(value as any);
+                        break;
+                    // Force value to save as an int
+                    case 'int':
+                        newValue = new datastore_entity.Int(value as any);
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
             obj[attrs.name || p] = propToDatastore(newValue);

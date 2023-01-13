@@ -400,11 +400,29 @@ describe('DataClient features', () => {
                 @Persist({ type: 'float' })
                 float: number;
 
+                @Persist({ type: 'float' })
+                intWithFloatType: number;
+
+                @Persist({ type: 'float' })
+                int: number;
+
+                @Persist({ type: 'float' })
+                floatWithIntType: number;
+
                 @Persist()
                 dateWithoutDecorator: string | Date;
 
                 @Persist({ type: 'date' })
                 dateWithDecorator: string | Date;
+
+                @Persist({ type: 'date' })
+                dateWithDecoratorButUndefined?: Date;
+
+                @Persist({ type: 'float' })
+                floatWithDecoratorButUndefined?: number;
+
+                @Persist({ type: 'int' })
+                intWithDecoratorButUndefined?: number;
 
                 constructor(props?: Partial<MyTypeEntity>) {
                     super(props && props.key);
@@ -414,9 +432,15 @@ describe('DataClient features', () => {
 
             const e = new MyTypeEntity({
                 key: Key.incompleteKey('MyTypeEntity'),
-                float: 42,
+                float: 42.0,
+                intWithFloatType: 42,
+                int: 42,
+                floatWithIntType: 42.0,
                 dateWithoutDecorator: new Date().toString(),
                 dateWithDecorator: new Date().toString(),
+                dateWithDecoratorButUndefined: undefined,
+                floatWithDecoratorButUndefined: undefined,
+                intWithDecoratorButUndefined: undefined,
             });
 
             await clt.save(e);
@@ -425,10 +449,16 @@ describe('DataClient features', () => {
 
             const result = await clt.get(e.key, MyTypeEntity);
 
-            expect(result.float).toEqual(42);
+            expect(result.float).toEqual(42.0);
+            expect(result.intWithFloatType).toEqual(42.0);
+            expect(result.int).toEqual(42);
+            expect(result.floatWithIntType).toEqual(42);
             expect(result.dateWithoutDecorator instanceof Date).toBeFalsy();
             expect(result.dateWithDecorator instanceof Date).toBeTruthy();
             expect(result.dateWithDecorator).toEqual(new Date(e.dateWithDecorator));
+            expect(result.dateWithDecoratorButUndefined).toBeUndefined();
+            expect(result.floatWithDecoratorButUndefined).toBeUndefined();
+            expect(result.intWithDecoratorButUndefined).toBeUndefined();
         });
     });
 });
