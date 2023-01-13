@@ -90,7 +90,7 @@ export abstract class Entity {
             const attrs = (attributes[p] as DatastoreOptions) || {};
             let newValue = value as any;
 
-            if (newValue) {
+            if (newValue !== undefined && newValue !== null) {
                 // If the property as a type metadata, we need to cast it to the proper type
                 switch (attrs.type) {
                     // Force value to save as a date
