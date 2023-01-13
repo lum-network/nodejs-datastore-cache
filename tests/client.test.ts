@@ -415,6 +415,15 @@ describe('DataClient features', () => {
                 @Persist({ type: 'date' })
                 dateWithDecorator: string | Date;
 
+                @Persist({ type: 'date' })
+                dateWithDecoratorButUndefined?: Date;
+
+                @Persist({ type: 'float' })
+                floatWithDecoratorButUndefined?: number;
+
+                @Persist({ type: 'int' })
+                intWithDecoratorButUndefined?: number;
+
                 constructor(props?: Partial<MyTypeEntity>) {
                     super(props && props.key);
                     Object.assign(this, props);
@@ -429,6 +438,9 @@ describe('DataClient features', () => {
                 floatWithIntType: 42.0,
                 dateWithoutDecorator: new Date().toString(),
                 dateWithDecorator: new Date().toString(),
+                dateWithDecoratorButUndefined: undefined,
+                floatWithDecoratorButUndefined: undefined,
+                intWithDecoratorButUndefined: undefined,
             });
 
             await clt.save(e);
@@ -444,6 +456,9 @@ describe('DataClient features', () => {
             expect(result.dateWithoutDecorator instanceof Date).toBeFalsy();
             expect(result.dateWithDecorator instanceof Date).toBeTruthy();
             expect(result.dateWithDecorator).toEqual(new Date(e.dateWithDecorator));
+            expect(result.dateWithDecoratorButUndefined).toBeUndefined();
+            expect(result.floatWithDecoratorButUndefined).toBeUndefined();
+            expect(result.intWithDecoratorButUndefined).toBeUndefined();
         });
     });
 });
